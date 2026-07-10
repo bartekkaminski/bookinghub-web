@@ -24,6 +24,11 @@ import { ProfilePage } from '@/features/profile/profile-page'
 import { ChildrenPage } from '@/features/children/children-page'
 import { MessagesInboxPage } from '@/features/notifications/messages-inbox-page'
 import { MessageDetailPage } from '@/features/notifications/message-detail-page'
+import { CalendarPage } from '@/features/events/calendar-page'
+import { EventDetailPage } from '@/features/events/event-detail-page'
+import { EventSeriesListPage } from '@/features/event-series/event-series-list-page'
+import { EventSeriesDetailPage } from '@/features/event-series/event-series-detail-page'
+import { PendingRequestsPage } from '@/features/enrollments/pending-requests-page'
 import { useAuthStore } from '@/features/auth/auth-store'
 
 // Root route
@@ -154,6 +159,36 @@ const messageDetailRoute = createRoute({
   component: MessageDetailPage,
 })
 
+const calendarRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/calendar',
+  component: CalendarPage,
+})
+
+const eventDetailRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/events/$eventId',
+  component: EventDetailPage,
+})
+
+const eventSeriesRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/event-series',
+  component: EventSeriesListPage,
+})
+
+const eventSeriesDetailRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/event-series/$seriesId',
+  component: EventSeriesDetailPage,
+})
+
+const pendingRequestsRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/pending-requests',
+  component: PendingRequestsPage,
+})
+
 // Index redirect
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -197,6 +232,11 @@ const routeTree = rootRoute.addChildren([
       childrenRoute,
       messagesRoute,
       messageDetailRoute,
+      calendarRoute,
+      eventDetailRoute,
+      eventSeriesRoute,
+      eventSeriesDetailRoute,
+      pendingRequestsRoute,
     ]),
   ]),
 ])

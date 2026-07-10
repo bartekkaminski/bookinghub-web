@@ -1,25 +1,51 @@
 import { useNavigate, useMatchRoute } from '@tanstack/react-router'
-import { Home, MessageSquare, User } from 'lucide-react'
+import { Home, CalendarDays, MessageSquare, User, ClipboardList } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/features/auth/auth-store'
+import { usePendingCancellationRequests } from '@/features/enrollments/use-cancellation-requests'
+import { usePendingEnrollmentRequests } from '@/features/enrollments/use-enrollments'
 import { cn } from '@/shared/utils/cn'
 
 export function BottomNav({ orgId }: { orgId: string }) {
   const navigate = useNavigate()
   const matchRoute = useMatchRoute()
   const { t } = useTranslation()
+  const { isAdminOrManager, isTrainer } = useAuthStore()
 
-  const navItems = [
+  const canSeePending = isAdminOrManager() || isTrainer()
+
+  const { data: pendingCancellations } = usePendingCancellationRequests(canSeePending ? orgId : '')
+  const { data: pendingEnrollments } = usePendingEnrollmentRequests(canSeePending ? orgId : '')
+  const pendingCount = (pendingCancellations?.length ?? 0) + (pendingEnrollments?.length ?? 0)
+
+  const baseItems = [
     {
+      key: 'home',
       label: t('nav.home'),
       icon: <Home className="h-5 w-5" />,
       href: `/app/org/${orgId}/dashboard`,
     },
     {
+      key: 'calendar',
+      label: t('nav.calendar'),
+      icon: <CalendarDays className="h-5 w-5" />,
+      href: `/app/org/${orgId}/calendar`,
+    },
+    {
+      key: 'messages',
       label: t('nav.messages'),
       icon: <MessageSquare className="h-5 w-5" />,
       href: `/app/org/${orgId}/messages`,
     },
+    ...(canSeePending ? [{
+      key: 'requests',
+      label: t('nav.requests'),
+      icon: <ClipboardList className="h-5 w-5" />,
+      href: `/app/org/${orgId}/pending-requests`,
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    }] : []),
     {
+      key: 'profile',
       label: t('nav.profile'),
       icon: <User className="h-5 w-5" />,
       href: `/app/org/${orgId}/profile`,
@@ -29,18 +55,25 @@ export function BottomNav({ orgId }: { orgId: string }) {
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border bottom-nav-safe">
       <div className="flex items-center justify-around h-16">
-        {navItems.map((item) => {
+        {baseItems.map((item) => {
           const isActive = !!matchRoute({ to: item.href, fuzzy: true })
           return (
             <button
-              key={item.label}
+              key={item.key}
               onClick={() => navigate({ to: item.href })}
               className={cn(
                 'flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors min-w-0 flex-1',
                 isActive ? 'text-primary' : 'text-muted-foreground active:text-foreground'
               )}
             >
-              <span className={cn('transition-transform', isActive && 'scale-110')}>{item.icon}</span>
+              <span className={cn('relative transition-transform', isActive && 'scale-110')}>
+                {item.icon}
+                {'badge' in item && item.badge !== undefined && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-0.5 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] font-medium truncate w-full text-center">{item.label}</span>
             </button>
           )

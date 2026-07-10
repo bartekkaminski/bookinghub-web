@@ -22,6 +22,15 @@ export function useGroups(orgId: string, params?: GroupFilterParams) {
   })
 }
 
+export function useAllGroups(orgId: string) {
+  return useQuery({
+    queryKey: [...groupKeys.all(orgId), 'all'],
+    queryFn: () => groupsApi.listAll(orgId),
+    enabled: !!orgId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useGroup(orgId: string, groupId: string) {
   return useQuery({
     queryKey: groupKeys.detail(orgId, groupId),

@@ -44,6 +44,38 @@ import type {
   SendMessageRequest,
   ReplyMessageRequest,
   UnreadCountResponse,
+  EventSummaryResponse,
+  EventCalendarResponse,
+  EventDetailResponse,
+  CreateEventRequest,
+  UpdateEventRequest,
+  CancelEventRequest,
+  AssignTrainerToEventRequest,
+  CalendarRequest,
+  EventFilterParams,
+  EventSeriesSummaryResponse,
+  EventSeriesDetailResponse,
+  CreateEventSeriesRequest,
+  UpdateEventSeriesRequest,
+  EventSeriesFilterParams,
+  GenerateEventsRequest,
+  GenerateEventsResponse,
+  EnrollmentSummaryResponse,
+  EnrollmentDetailResponse,
+  TeamEnrollmentSummaryResponse,
+  EnrollMemberRequest,
+  EnrollTeamRequest,
+  SetEnrollmentStatusRequest,
+  BulkAttendanceRequest,
+  EventEnrollmentFilterParams,
+  RequestEnrollmentRequest,
+  ReviewEnrollmentRequestRequest,
+  EnrollmentRequestSummaryResponse,
+  CancellationRequestSummaryResponse,
+  CancellationRequestDetailResponse,
+  CreateCancellationRequest,
+  ReviewCancellationRequest,
+  CancellationRequestFilterParams,
   PagedResult,
   OrganizationFilterParams,
   OrganizationMemberFilterParams,
@@ -275,6 +307,83 @@ export const locationsApi = {
     api.delete(`/api/organizations/${organizationId}/locations/${locationId}`),
 }
 
+// ── Events ────────────────────────────────────────────────────────────────────
+
+export const eventsApi = {
+  list: (organizationId: string, params?: EventFilterParams) =>
+    api.get<PagedResult<EventSummaryResponse>>(
+      `/api/organizations/${organizationId}/events`,
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
+  calendar: (organizationId: string, params: CalendarRequest) =>
+    api.get<EventCalendarResponse[]>(
+      `/api/organizations/${organizationId}/events/calendar`,
+      params as unknown as Record<string, string | number | boolean | undefined>
+    ),
+
+  myCalendar: (organizationId: string, params: CalendarRequest) =>
+    api.get<EventCalendarResponse[]>(
+      `/api/organizations/${organizationId}/events/my-calendar`,
+      params as unknown as Record<string, string | number | boolean | undefined>
+    ),
+
+  getById: (organizationId: string, eventId: string) =>
+    api.get<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}`),
+
+  create: (organizationId: string, data: CreateEventRequest) =>
+    api.post<EventDetailResponse>(`/api/organizations/${organizationId}/events`, data),
+
+  update: (organizationId: string, eventId: string, data: UpdateEventRequest) =>
+    api.put<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}`, data),
+
+  cancel: (organizationId: string, eventId: string, data: CancelEventRequest) =>
+    api.post<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}/cancel`, data),
+
+  complete: (organizationId: string, eventId: string) =>
+    api.post<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}/complete`),
+
+  delete: (organizationId: string, eventId: string) =>
+    api.delete(`/api/organizations/${organizationId}/events/${eventId}`),
+
+  assignTrainer: (organizationId: string, eventId: string, data: AssignTrainerToEventRequest) =>
+    api.post<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}/trainers`, data),
+
+  removeTrainer: (organizationId: string, eventId: string, trainerId: string) =>
+    api.delete<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}/trainers/${trainerId}`),
+}
+
+// ── Event Series ──────────────────────────────────────────────────────────────
+
+export const eventSeriesApi = {
+  list: (organizationId: string, params?: EventSeriesFilterParams) =>
+    api.get<PagedResult<EventSeriesSummaryResponse>>(
+      `/api/organizations/${organizationId}/event-series`,
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
+  listAll: (organizationId: string) =>
+    api.get<EventSeriesSummaryResponse[]>(`/api/organizations/${organizationId}/event-series/all`),
+
+  getById: (organizationId: string, seriesId: string) =>
+    api.get<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series/${seriesId}`),
+
+  create: (organizationId: string, data: CreateEventSeriesRequest) =>
+    api.post<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series`, data),
+
+  update: (organizationId: string, seriesId: string, data: UpdateEventSeriesRequest) =>
+    api.put<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series/${seriesId}`, data),
+
+  delete: (organizationId: string, seriesId: string) =>
+    api.delete(`/api/organizations/${organizationId}/event-series/${seriesId}`),
+
+  generate: (organizationId: string, seriesId: string, data: GenerateEventsRequest) =>
+    api.post<GenerateEventsResponse>(
+      `/api/organizations/${organizationId}/event-series/${seriesId}/generate`,
+      data
+    ),
+}
+
 // ── Messages ──────────────────────────────────────────────────────────────────
 
 export const messagesApi = {
@@ -310,4 +419,98 @@ export const messagesApi = {
 
   delete: (organizationId: string, messageId: string) =>
     api.delete(`/api/organizations/${organizationId}/messages/${messageId}`),
+}
+
+// ── Enrollments ───────────────────────────────────────────────────────────────
+
+const enrollmentsBase = (orgId: string, eventId: string) =>
+  `/api/organizations/${orgId}/events/${eventId}/enrollments`
+
+export const enrollmentsApi = {
+  listForEvent: (orgId: string, eventId: string, params?: EventEnrollmentFilterParams) =>
+    api.get<PagedResult<EnrollmentSummaryResponse>>(
+      enrollmentsBase(orgId, eventId),
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
+  listTeamsForEvent: (orgId: string, eventId: string) =>
+    api.get<TeamEnrollmentSummaryResponse[]>(`${enrollmentsBase(orgId, eventId)}/teams`),
+
+  getById: (orgId: string, eventId: string, enrollmentId: string) =>
+    api.get<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/${enrollmentId}`),
+
+  enrollMember: (orgId: string, eventId: string, data: EnrollMemberRequest) =>
+    api.post<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/enroll-member`, data),
+
+  enrollTeam: (orgId: string, eventId: string, data: EnrollTeamRequest) =>
+    api.post<TeamEnrollmentSummaryResponse>(`${enrollmentsBase(orgId, eventId)}/enroll-team`, data),
+
+  unenroll: (orgId: string, eventId: string, enrollmentId: string) =>
+    api.delete(`${enrollmentsBase(orgId, eventId)}/${enrollmentId}`),
+
+  unenrollTeam: (orgId: string, eventId: string, teamEnrollmentId: string) =>
+    api.delete(`${enrollmentsBase(orgId, eventId)}/teams/${teamEnrollmentId}`),
+
+  setStatus: (orgId: string, eventId: string, enrollmentId: string, data: SetEnrollmentStatusRequest) =>
+    api.patch<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/${enrollmentId}/status`, data),
+
+  bulkAttendance: (orgId: string, eventId: string, data: BulkAttendanceRequest) =>
+    api.post<void>(`${enrollmentsBase(orgId, eventId)}/bulk-attendance`, data),
+
+  listForMember: (orgId: string, memberId: string, params?: EventEnrollmentFilterParams) =>
+    api.get<PagedResult<EnrollmentSummaryResponse>>(
+      `/api/organizations/${orgId}/members/${memberId}/enrollments`,
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
+  requestEnrollment: (orgId: string, eventId: string, data: RequestEnrollmentRequest) =>
+    api.post<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/request-enrollment`, data),
+
+  approveEnrollmentRequest: (orgId: string, eventId: string, enrollmentId: string, data: ReviewEnrollmentRequestRequest) =>
+    api.post<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/${enrollmentId}/approve`, data),
+
+  rejectEnrollmentRequest: (orgId: string, eventId: string, enrollmentId: string, data: ReviewEnrollmentRequestRequest) =>
+    api.post<EnrollmentDetailResponse>(`${enrollmentsBase(orgId, eventId)}/${enrollmentId}/reject`, data),
+}
+
+// ── Enrollment Requests (org-level) ──────────────────────────────────────────
+
+export const enrollmentRequestsApi = {
+  listPending: (orgId: string) =>
+    api.get<EnrollmentRequestSummaryResponse[]>(
+      `/api/organizations/${orgId}/enrollment-requests/pending`
+    ),
+}
+
+// ── Cancellation Requests ─────────────────────────────────────────────────────
+
+const cancBase = (orgId: string) => `/api/organizations/${orgId}/cancellation-requests`
+
+export const cancellationRequestsApi = {
+  listPaged: (orgId: string, params?: CancellationRequestFilterParams) =>
+    api.get<PagedResult<CancellationRequestSummaryResponse>>(
+      cancBase(orgId),
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
+  listPending: (orgId: string) =>
+    api.get<CancellationRequestSummaryResponse[]>(`${cancBase(orgId)}/pending`),
+
+  listMy: (orgId: string) =>
+    api.get<CancellationRequestSummaryResponse[]>(`${cancBase(orgId)}/my`),
+
+  getById: (orgId: string, requestId: string) =>
+    api.get<CancellationRequestDetailResponse>(`${cancBase(orgId)}/${requestId}`),
+
+  submit: (orgId: string, enrollmentId: string, data: CreateCancellationRequest) =>
+    api.post<CancellationRequestDetailResponse>(
+      `${cancBase(orgId)}/enrollments/${enrollmentId}`,
+      data
+    ),
+
+  review: (orgId: string, requestId: string, data: ReviewCancellationRequest) =>
+    api.post<CancellationRequestDetailResponse>(`${cancBase(orgId)}/${requestId}/review`, data),
+
+  withdraw: (orgId: string, requestId: string) =>
+    api.post<void>(`${cancBase(orgId)}/${requestId}/withdraw`),
 }

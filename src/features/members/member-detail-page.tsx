@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, memberKeys } from './use-members'
+import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, memberKeys } from './use-members'
+import { useTrainers } from './use-members'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
@@ -14,6 +15,7 @@ import { ErrorState } from '@/shared/components/error-state'
 import { PageHeader } from '@/shared/components/page-header'
 import { getRoleLabel } from '@/shared/utils/roles'
 import { getInitials } from '@/shared/utils/format'
+import { cn } from '@/shared/utils/cn'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/shared/components/ui/drawer'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -29,17 +31,21 @@ export function MemberDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [addRoleOpen, setAddRoleOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
+  const [trainerDrawerOpen, setTrainerDrawerOpen] = useState(false)
 
   const { data: member, isLoading, isError, refetch } = useMember(orgId, memberId)
   const updateMutation = useUpdateMember(orgId, memberId)
   const setActiveMutation = useSetMemberActive(orgId, memberId)
   const addRoleMutation = useAddMemberRole(orgId, memberId)
   const removeRoleMutation = useRemoveMemberRole(orgId, memberId)
+  const assignTrainerM = useAssignTrainer(orgId)
+  const removeTrainerM = useRemoveTrainerFromMember(orgId)
 
   const isOwnProfile = user?.memberships.some(m => m.organizationId === orgId && member?.personId === user.personId)
   const canEdit = isAdminOrManager() || isOwnProfile
   const canManageRoles = isAdmin()
   const canToggleActive = isAdmin()
+  const canManageTrainers = isAdminOrManager()
 
   const handleEdit = async (data: UpdateMemberRequest) => {
     try {
@@ -145,15 +151,49 @@ export function MemberDetailPage() {
           </div>
         )}
 
-        {(member?.assignedTrainers.length ?? 0) > 0 && (
+        {(canManageTrainers || (member?.assignedTrainers.length ?? 0) > 0) && (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground px-1">{t('members.trainersSection')}</p>
-            {member?.assignedTrainers.map((tr) => (
-              <div key={tr.trainerId} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
-                <UserCheck className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm font-medium">{tr.trainerName}</span>
-              </div>
-            ))}
+            <p className="text-xs text-muted-foreground px-1 mb-1">{t('members.trainersSection')}</p>
+            {canManageTrainers && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setTrainerDrawerOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {t('members.addTrainer')}
+              </Button>
+            )}
+            {(member?.assignedTrainers.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground px-1 pt-1">{t('members.noTrainers')}</p>
+            ) : (
+              member?.assignedTrainers.map((tr) => (
+                <div key={tr.trainerId} className="rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3">
+                  <UserCheck className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm font-medium flex-1">{tr.trainerName}</span>
+                  {canManageTrainers && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await removeTrainerM.mutateAsync({ memberId, trainerId: tr.trainerId })
+                          toast.success(t('members.trainerRemoved'))
+                        } catch {
+                          toast.error(t('members.trainerRemoveFailed'))
+                        }
+                      }}
+                      disabled={removeTrainerM.isPending}
+                      className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                      aria-label="Usuń trenera"
+                    >
+                      {removeTrainerM.isPending
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <X className="h-3.5 w-3.5" />}
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -193,6 +233,19 @@ export function MemberDetailPage() {
               toast.error(t('members.statusFailed'))
             }
           }} />
+      )}
+
+      {canManageTrainers && member && (
+        <AssignParticipantTrainerDrawer
+          open={trainerDrawerOpen}
+          onClose={() => setTrainerDrawerOpen(false)}
+          orgId={orgId}
+          memberId={memberId}
+          assignedTrainerIds={member.assignedTrainers.map(t => t.trainerId)}
+          onAssign={async (trainerId) => {
+            await assignTrainerM.mutateAsync({ memberId, data: { trainerMemberId: trainerId } })
+          }}
+        />
       )}
     </div>
   )
@@ -300,6 +353,94 @@ function RolesDrawer({ open, onClose, onSave, isLoading, currentRoles }: {
             {t('common.save')}
           </Button>
           <Button variant="ghost" onClick={onClose} className="w-full">{t('common.cancel')}</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function AssignParticipantTrainerDrawer({
+  open, onClose, orgId, memberId: _memberId, assignedTrainerIds, onAssign,
+}: {
+  open: boolean
+  onClose: () => void
+  orgId: string
+  memberId: string
+  assignedTrainerIds: string[]
+  onAssign: (trainerId: string) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const { data: trainers, isLoading } = useTrainers(orgId)
+
+  const handleAssign = async (trainerId: string) => {
+    if (assignedTrainerIds.includes(trainerId)) return
+    setPendingId(trainerId)
+    try {
+      await onAssign(trainerId)
+      toast.success(t('members.trainerAssigned'))
+    } catch {
+      toast.error(t('members.trainerAssignFailed'))
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.assignTrainerTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : !trainers || trainers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">{t('members.noAvailableTrainers')}</p>
+          ) : (
+            <div className="space-y-1 max-h-96 overflow-y-auto -mx-4 px-4">
+              {trainers.map((tr) => {
+                const assigned = assignedTrainerIds.includes(tr.id)
+                const loading = pendingId === tr.id
+                return (
+                  <button
+                    key={tr.id}
+                    onClick={() => handleAssign(tr.id)}
+                    disabled={assigned || loading}
+                    className={cn(
+                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left',
+                      assigned
+                        ? 'opacity-60 cursor-default bg-muted/30'
+                        : 'hover:bg-accent cursor-pointer',
+                    )}
+                  >
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={tr.photoUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(tr.displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 text-sm font-medium">{tr.displayName}</span>
+                    {assigned ? (
+                      <Badge variant="secondary" className="text-xs gap-1">
+                        <UserCheck className="h-3 w-3" />
+                        {t('members.alreadyAssigned')}
+                      </Badge>
+                    ) : loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <DrawerFooter>
+          <Button variant="outline" onClick={onClose} className="w-full">
+            {t('common.close')}
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

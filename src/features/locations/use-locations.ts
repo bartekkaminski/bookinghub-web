@@ -16,6 +16,15 @@ export function useLocations(orgId: string, params?: LocationFilterParams) {
   })
 }
 
+export function useAllLocations(orgId: string) {
+  return useQuery({
+    queryKey: [...locationKeys.all(orgId), 'all'],
+    queryFn: () => locationsApi.listAll(orgId),
+    enabled: !!orgId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useLocation(orgId: string, locationId: string) {
   return useQuery({
     queryKey: locationKeys.detail(orgId, locationId),

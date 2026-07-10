@@ -27,6 +27,7 @@ export interface AuthMeResponse {
 }
 
 export interface AuthMembershipInfo {
+  memberId: string
   organizationId: string
   organizationName: string
   isActive: boolean
@@ -480,7 +481,7 @@ export interface UpdateAvailabilitySlotRequest {
 
 export type EventStatus = 'Scheduled' | 'Cancelled' | 'Completed'
 export type EventType = 'GroupTraining' | 'IndividualSession' | 'Camp' | 'Other'
-export type EventEnrollmentStatus = 'Enrolled' | 'Cancelled' | 'Attended' | 'Absent'
+export type EventEnrollmentStatus = 'PendingApproval' | 'Enrolled' | 'Cancelled' | 'Attended' | 'Absent'
 export type CancellationStatus = 'Pending' | 'Approved' | 'Rejected' | 'Withdrawn'
 
 export interface EventSummaryResponse {
@@ -508,6 +509,151 @@ export interface EventCalendarResponse {
   color?: string
   locationName?: string
   groupName?: string
+  enrolledCount: number
+  trainerNames: string[]
+  eventSeriesId?: string
+}
+
+export interface EventDetailResponse {
+  id: string
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  eventType: EventType
+  status: EventStatus
+  color?: string
+  locationId?: string
+  locationName?: string
+  groupId?: string
+  groupName?: string
+  eventSeriesId?: string
+  eventSeriesTitle?: string
+  trainers: EventTrainerInfo[]
+  enrollments: EventEnrollmentInfo[]
+  teamEnrollments: EventTeamEnrollmentInfo[]
+  unitCost?: number
+  currency?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EventTrainerInfo {
+  memberId: string
+  displayName: string
+  photoUrl?: string
+}
+
+export interface EventEnrollmentInfo {
+  id: string
+  memberId: string
+  displayName: string
+  photoUrl?: string
+  status: EventEnrollmentStatus
+}
+
+export interface EventTeamEnrollmentInfo {
+  id: string
+  teamId: string
+  teamName?: string
+  status: EventEnrollmentStatus
+  memberCount: number
+}
+
+export interface CreateEventRequest {
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  eventType: EventType
+  locationId?: string
+  groupId?: string
+  eventSeriesId?: string
+  color?: string
+  unitCost?: number
+  currency?: string
+}
+
+export interface UpdateEventRequest {
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  eventType: EventType
+  locationId?: string
+  groupId?: string
+  color?: string
+  unitCost?: number
+  currency?: string
+}
+
+export interface CancelEventRequest {
+  reason?: string
+  notifyEnrolled?: boolean
+}
+
+export interface AssignTrainerToEventRequest {
+  trainerMemberId: string
+}
+
+export interface CalendarRequest {
+  from: string
+  to: string
+  groupId?: string
+  locationId?: string
+  eventType?: EventType
+  status?: EventStatus
+}
+
+export interface EventSeriesSummaryResponse {
+  id: string
+  title: string
+  description?: string
+  recurrenceRule?: string
+  defaultGroupId?: string
+  defaultGroupName?: string
+  defaultLocationId?: string
+  defaultLocationName?: string
+  defaultColor?: string
+  defaultEventType: EventType
+  isActive: boolean
+}
+
+export interface EventSeriesDetailResponse {
+  id: string
+  title: string
+  description?: string
+  recurrenceRule?: string
+  defaultGroupId?: string
+  defaultGroupName?: string
+  defaultLocationId?: string
+  defaultLocationName?: string
+  defaultColor?: string
+  defaultEventType: EventType
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateEventSeriesRequest {
+  title: string
+  description?: string
+  recurrenceRule?: string
+  defaultGroupId?: string
+  defaultLocationId?: string
+  defaultColor?: string
+  defaultEventType?: EventType
+}
+
+export interface UpdateEventSeriesRequest {
+  title: string
+  description?: string
+  recurrenceRule?: string
+  defaultGroupId?: string
+  defaultLocationId?: string
+  defaultColor?: string
+  defaultEventType: EventType
+  isActive: boolean
 }
 
 // ── Filter Params ─────────────────────────────────────────────────────────────
@@ -546,4 +692,185 @@ export interface LocationFilterParams extends FilterParams {
 
 export interface MessageFilterParams extends FilterParams {
   search?: string
+}
+
+export interface EventFilterParams extends FilterParams {
+  eventSeriesId?: string
+  groupId?: string
+  locationId?: string
+  eventType?: EventType
+  status?: EventStatus
+  startFrom?: string
+  startTo?: string
+  search?: string
+}
+
+export interface EventSeriesFilterParams extends FilterParams {
+  search?: string
+  defaultGroupId?: string
+  defaultLocationId?: string
+  defaultEventType?: EventType
+  isActive?: boolean
+}
+
+// ── Generate Events ───────────────────────────────────────────────────────────
+
+export interface GenerateEventsRequest {
+  /** Data początkowa zakresu "YYYY-MM-DD" */
+  dateFrom: string
+  /** Data końcowa zakresu "YYYY-MM-DD" */
+  dateTo: string
+  /** Godzina rozpoczęcia "HH:mm" */
+  startTime: string
+  /** Godzina zakończenia "HH:mm" */
+  endTime: string
+  overrideLocationId?: string
+  overrideGroupId?: string
+  overrideColor?: string
+}
+
+export interface GenerateEventsResponse {
+  generatedCount: number
+  skippedCount: number
+}
+
+// ── Enrollments ───────────────────────────────────────────────────────────────
+
+export type EventEnrollmentFilterStatus = 'PendingApproval' | 'Enrolled' | 'Cancelled' | 'Attended' | 'Absent'
+
+export interface EventEnrollmentFilterParams extends FilterParams {
+  status?: EventEnrollmentFilterStatus
+}
+
+export interface EnrollmentSummaryResponse {
+  id: string
+  eventId: string
+  eventTitle: string
+  eventStartTime: string
+  organizationMemberId: string
+  memberDisplayName: string
+  status: EventEnrollmentStatus
+  hasPendingCancellation: boolean
+  createdAt: string
+}
+
+export interface CancellationRequestInfo {
+  id: string
+  reason?: string
+  requestedAt: string
+  status: string
+  reviewNote?: string
+  reviewedAt?: string
+}
+
+export interface EnrollmentDetailResponse {
+  id: string
+  eventId: string
+  organizationId: string
+  eventTitle: string
+  eventStartTime: string
+  eventEndTime: string
+  organizationMemberId: string
+  memberDisplayName: string
+  status: EventEnrollmentStatus
+  cancellationRequests: CancellationRequestInfo[]
+  createdAt: string
+}
+
+export interface TeamEnrollmentSummaryResponse {
+  id: string
+  eventId: string
+  eventTitle: string
+  eventStartTime: string
+  teamId: string
+  teamName?: string
+  status: EventEnrollmentStatus
+  membersCount: number
+  createdAt: string
+}
+
+export interface EnrollMemberRequest {
+  organizationMemberId: string
+}
+
+export interface EnrollTeamRequest {
+  teamId: string
+}
+
+export interface SetEnrollmentStatusRequest {
+  status: EventEnrollmentStatus
+}
+
+export interface BulkAttendanceRequest {
+  enrollmentIds: string[]
+}
+
+// ── Enrollment Requests (PendingApproval flow) ────────────────────────────────
+
+export interface RequestEnrollmentRequest {
+  reason?: string
+}
+
+export interface ReviewEnrollmentRequestRequest {
+  approved: boolean
+  reviewNote?: string
+}
+
+export interface EnrollmentRequestSummaryResponse {
+  id: string
+  eventId: string
+  eventTitle: string
+  eventStartTime: string
+  organizationMemberId: string
+  memberDisplayName: string
+  reason?: string
+  requestedAt: string
+}
+
+// ── Cancellation Requests ─────────────────────────────────────────────────────
+
+export interface CancellationRequestFilterParams extends FilterParams {
+  status?: CancellationStatus
+  memberId?: string
+}
+
+export interface CancellationRequestSummaryResponse {
+  id: string
+  eventEnrollmentId: string
+  eventId: string
+  eventTitle: string
+  eventStartTime: string
+  requestedByMemberId: string
+  requestedByName: string
+  reason?: string
+  requestedAt: string
+  status: CancellationStatus
+}
+
+export interface CancellationRequestDetailResponse {
+  id: string
+  eventEnrollmentId: string
+  eventId: string
+  organizationId: string
+  eventTitle: string
+  eventStartTime: string
+  requestedByMemberId: string
+  requestedByName: string
+  reason?: string
+  requestedAt: string
+  status: CancellationStatus
+  reviewedByPersonId?: string
+  reviewedByName?: string
+  reviewedAt?: string
+  reviewNote?: string
+  createdAt: string
+}
+
+export interface CreateCancellationRequest {
+  reason?: string
+}
+
+export interface ReviewCancellationRequest {
+  decision: CancellationStatus
+  reviewNote?: string
 }
