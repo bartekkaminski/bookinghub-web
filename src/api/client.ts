@@ -24,18 +24,19 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 async function parseError(response: Response): Promise<ApiError> {
   let message = `HTTP ${response.status}`
   let details: Record<string, string[]> | undefined
+  let errorCode: string | undefined
 
   try {
     const body = await response.json()
     message = body.detail ?? body.title ?? body.message ?? message
-    if (body.errors) {
-      details = body.errors
-    }
+    if (body.errors) details = body.errors
+    // ProblemDetails extensions — API ustawia errorCode w extensions
+    errorCode = body.extensions?.errorCode ?? body.errorCode
   } catch {
     // ignore json parse error
   }
 
-  const codeMap: Record<number, ApiError['code']> = {
+  const codeMap: Record<number, string> = {
     401: 'Unauthorized',
     403: 'Forbidden',
     404: 'NotFound',
@@ -46,7 +47,7 @@ async function parseError(response: Response): Promise<ApiError> {
 
   return new ApiError(
     response.status,
-    codeMap[response.status] ?? 'ServerError',
+    errorCode ?? codeMap[response.status] ?? 'ServerError',
     message,
     details
   )

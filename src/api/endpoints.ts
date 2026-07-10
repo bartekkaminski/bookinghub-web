@@ -11,6 +11,7 @@ import type {
   AddParentChildRequest,
   OrganizationSummaryResponse,
   OrganizationDetailResponse,
+  OrganizationCreationLimitsResponse,
   CreateOrganizationRequest,
   UpdateOrganizationRequest,
   MemberSummaryResponse,
@@ -109,6 +110,9 @@ export const organizationsApi = {
 
   getById: (organizationId: string) =>
     api.get<OrganizationDetailResponse>(`/api/organizations/${organizationId}`),
+
+  getCreationLimits: () =>
+    api.get<OrganizationCreationLimitsResponse>('/api/organizations/limits'),
 
   create: (data: CreateOrganizationRequest) =>
     api.post<OrganizationDetailResponse>('/api/organizations', data),

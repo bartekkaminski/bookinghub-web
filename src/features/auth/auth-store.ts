@@ -46,11 +46,13 @@ export const useAuthStore = create<AuthState>()(
             i18n.changeLanguage(lang)
           }
         }
-        // Auto-select first active org if none selected
-        if (user && !get().currentOrgId) {
-          const firstActive = user.memberships.find(m => m.isActive)
-          if (firstActive) {
-            set({ currentOrgId: firstActive.organizationId })
+        if (user) {
+          const { currentOrgId } = get()
+          const activeMemberships = user.memberships.filter(m => m.isActive)
+          const currentIsValid = !!currentOrgId && activeMemberships.some(m => m.organizationId === currentOrgId)
+          if (!currentIsValid) {
+            // Stale lub brak currentOrgId – wybierz pierwszą aktywną lub wyczyść
+            set({ currentOrgId: activeMemberships[0]?.organizationId ?? null })
           }
         }
       },

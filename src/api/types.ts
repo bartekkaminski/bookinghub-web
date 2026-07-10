@@ -144,6 +144,12 @@ export interface UpdateOrganizationRequest {
   description?: string
 }
 
+export interface OrganizationCreationLimitsResponse {
+  maxOrganizationsPerCreator: number
+  createdByMeCount: number
+  canCreate: boolean
+}
+
 // ── Member ────────────────────────────────────────────────────────────────────
 
 export interface MemberSummaryResponse {

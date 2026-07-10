@@ -5,6 +5,9 @@ export type ApiErrorCode =
   | 'Conflict'
   | 'ValidationError'
   | 'ServerError'
+  | 'OrganizationCreationLimitReached'
+  | 'OrganizationNameTaken'
+  | string
 
 export class ApiError extends Error {
   constructor(
@@ -22,6 +25,7 @@ export class ApiError extends Error {
   get isNotFound() { return this.status === 404 }
   get isConflict() { return this.status === 409 }
   get isValidation() { return this.status === 400 || this.status === 422 }
+  get isCreationLimitReached() { return this.code === 'OrganizationCreationLimitReached' }
 }
 
 export function getErrorMessage(error: unknown): string {

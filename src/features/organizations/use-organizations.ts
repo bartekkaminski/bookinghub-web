@@ -6,6 +6,7 @@ export const orgKeys = {
   all: ['organizations'] as const,
   lists: () => [...orgKeys.all, 'list'] as const,
   detail: (id: string) => [...orgKeys.all, 'detail', id] as const,
+  limits: () => [...orgKeys.all, 'limits'] as const,
 }
 
 export function useOrganizations(params?: { page?: number; pageSize?: number }) {
@@ -23,12 +24,20 @@ export function useOrganization(organizationId: string) {
   })
 }
 
+export function useOrganizationCreationLimits() {
+  return useQuery({
+    queryKey: orgKeys.limits(),
+    queryFn: () => organizationsApi.getCreationLimits(),
+  })
+}
+
 export function useCreateOrganization() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateOrganizationRequest) => organizationsApi.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: orgKeys.lists() })
+      qc.invalidateQueries({ queryKey: orgKeys.limits() })
     },
   })
 }
