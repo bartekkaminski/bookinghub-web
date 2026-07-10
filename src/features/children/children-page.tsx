@@ -1,0 +1,71 @@
+import { useAuthStore } from '@/features/auth/auth-store'
+import { usePersonChildren } from '@/features/profile/use-person'
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import { Badge } from '@/shared/components/ui/badge'
+import { ListSkeleton } from '@/shared/components/loading-skeletons'
+import { EmptyState } from '@/shared/components/empty-state'
+import { ErrorState } from '@/shared/components/error-state'
+import { PageHeader } from '@/shared/components/page-header'
+import { getInitials, formatDate } from '@/shared/utils/format'
+import { Users2, User } from 'lucide-react'
+
+export function ChildrenPage() {
+  const { user } = useAuthStore()
+  const personId = user?.personId ?? ''
+
+  const { data: children, isLoading, isError, refetch } = usePersonChildren(personId)
+
+  return (
+    <div>
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+        <PageHeader title="Moje dzieci" />
+      </div>
+
+      {isLoading ? (
+        <ListSkeleton />
+      ) : isError ? (
+        <ErrorState onRetry={refetch} />
+      ) : children?.length === 0 ? (
+        <EmptyState
+          icon={<Users2 className="h-8 w-8" />}
+          title="Brak profili dzieci"
+          description="Skontaktuj się z administratorem, aby dodać profil dziecka do swojego konta"
+        />
+      ) : (
+        <div className="p-4 space-y-2">
+          <p className="text-xs text-muted-foreground mb-3">
+            Aby dodać dziecko, skontaktuj się z administratorem organizacji
+          </p>
+          {children?.map((child) => (
+            <div
+              key={child.id}
+              className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card"
+            >
+              <Avatar className="h-12 w-12 flex-shrink-0">
+                <AvatarImage src={child.photoUrl} />
+                <AvatarFallback className="bg-primary/20 text-primary">
+                  {child.fullName ? getInitials(child.fullName) : <User className="h-5 w-5" />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">
+                  {child.fullName ?? 'Brak imienia'}
+                </p>
+                {child.dateOfBirth && (
+                  <p className="text-xs text-muted-foreground">
+                    Urodzony: {formatDate(child.dateOfBirth)}
+                  </p>
+                )}
+                <div className="mt-1">
+                  <Badge variant={child.hasAccount ? 'default' : 'secondary'} className="text-xs">
+                    {child.hasAccount ? 'Ma konto' : 'Bez konta'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

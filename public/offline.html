@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookingHub — Brak połączenia</title>
+  <style>
+    body {
+      background: #0f0f0f;
+      color: #f5f5f5;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 2rem;
+    }
+    .container { max-width: 320px; }
+    .icon { font-size: 3rem; margin-bottom: 1rem; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+    p { font-size: 0.875rem; color: #888; }
+    button {
+      margin-top: 1.5rem;
+      background: #6d28d9;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>Brak połączenia</h1>
+    <p>Sprawdź połączenie z internetem i spróbuj ponownie.</p>
+    <button onclick="window.location.reload()">Spróbuj ponownie</button>
+  </div>
+</body>
+</html>
