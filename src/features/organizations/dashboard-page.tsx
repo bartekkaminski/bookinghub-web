@@ -36,8 +36,6 @@ export function DashboardPage() {
   if (isError) return <ErrorState onRetry={refetch} />
 
   const currentMembership = user?.memberships.find(m => m.organizationId === orgId)
-  const firstName = user?.fullName?.split(' ')[0]
-  const orgInitials = org?.name.slice(0, 2).toUpperCase() ?? '??'
 
   const quickLinks = [
     { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/app/org/${orgId}/members` },
