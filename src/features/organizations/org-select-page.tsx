@@ -100,7 +100,7 @@ export function OrgSelectPage() {
         )}
       </div>
 
-      <div className="p-4 border-t border-border">
+      <div className="px-4 pt-4 border-t border-border" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)' }}>
         <Button className="w-full gap-2" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" />
           {t('orgs.createOrg')}
