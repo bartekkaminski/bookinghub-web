@@ -1,0 +1,17 @@
+---
+description: Po każdej zmianie w plikach TypeScript/TSX uruchom typecheck
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript Type Checking
+
+Po każdej substantywnej zmianie w plikach `.ts` lub `.tsx` **zawsze** uruchom:
+
+```bash
+npm run typecheck
+```
+
+w katalogu `bookinghub-web`. Napraw wszystkie błędy przed zakończeniem zadania.
+
+Nie polegaj wyłącznie na `ReadLints` — `tsc` wyłapuje błędy których linter może nie zgłosić (np. nieużywane zmienne z `noUnusedLocals`, niezgodności typów).
