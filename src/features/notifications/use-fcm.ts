@@ -146,6 +146,12 @@ export function useFcmRegistration() {
           if (orgId) {
             qc.invalidateQueries({ queryKey: messageKeys.all(orgId) })
           }
+          // Pokaż toast gdy aplikacja jest otwarta (SW nie pokaże systenowej notyfikacji)
+          const title = payload.notification?.title ?? payload.data?.['title']
+          const body  = payload.notification?.body  ?? payload.data?.['body']
+          if (title || body) {
+            toast.info(body ?? title ?? 'Nowa wiadomość', { description: body ? title : undefined })
+          }
         })
       }
     } catch (err) {
