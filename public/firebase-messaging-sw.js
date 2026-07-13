@@ -21,7 +21,14 @@ firebase.initializeApp(self.__FIREBASE_CONFIG__)
 const messaging = firebase.messaging()
 
 // ── Powiadomienia w tle / gdy aplikacja jest zamknięta ───────────────────────
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
+  // Sprawdź czy którekolwiek okno aplikacji jest otwarte (nawet spoza scope SW).
+  // Gdy aplikacja jest otwarta — Firebase SDK w głównym wątku wywoła onMessage()
+  // i pokaże toast. Nie dublujemy powiadomienia systemowego.
+  const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true })
+  const appIsOpen = windowClients.some((c) => c.url.startsWith(self.location.origin))
+  if (appIsOpen) return
+
   const title    = payload.notification?.title ?? 'BookingHub'
   const body     = payload.notification?.body  ?? ''
   const actionUrl = payload.data?.actionUrl    ?? '/'
