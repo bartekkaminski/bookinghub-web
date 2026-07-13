@@ -83,11 +83,23 @@ export function useFcmRegistration() {
 
       let swRegistration: ServiceWorkerRegistration
       try {
-        swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
+        // Rejestrujemy Firebase SW z własnym scope żeby nie kolidował z VitePWA sw.js (scope: '/').
+        // Dla obsługi push notifications scope nie musi być '/' — SW może obsługiwać push
+        // niezależnie od tego którą stronę "kontroluje".
+        swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/firebase-push/',
+        })
         console.info('[FCM] Service Worker zarejestrowany:', swRegistration.scope)
       } catch (swErr) {
-        console.error('[FCM] Błąd rejestracji Service Workera:', swErr)
-        return
+        // Fallback: spróbuj bez określonego scope (domyślny scope = katalog pliku = '/')
+        console.warn('[FCM] Błąd rejestracji SW z /firebase-push/ scope, próba bez scope:', swErr)
+        try {
+          swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+          console.info('[FCM] Service Worker zarejestrowany (fallback):', swRegistration.scope)
+        } catch (swErr2) {
+          console.error('[FCM] Błąd rejestracji Service Workera:', swErr2)
+          return
+        }
       }
 
       let token: string
