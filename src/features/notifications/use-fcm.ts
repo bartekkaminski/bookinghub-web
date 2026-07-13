@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
@@ -13,9 +13,7 @@ const STORAGE_KEY = 'bookinghub-fcm-token'
 let firebaseApp: FirebaseApp | null = null
 
 function getFirebaseApp(): FirebaseApp | null {
-  // Jeśli brak konfiguracji (np. środowisko developerskie), zwróć null
   if (!import.meta.env.VITE_FIREBASE_APP_ID) return null
-
   if (getApps().length > 0) return getApps()[0]!
 
   firebaseApp = initializeApp({
@@ -30,88 +28,120 @@ function getFirebaseApp(): FirebaseApp | null {
   return firebaseApp
 }
 
-// ── Hook rejestracji FCM (wywoływany w App.tsx — globalnie) ──────────────────
+export type NotificationPermissionState = 'unsupported' | 'default' | 'granted' | 'denied'
+
+// ── Główny hook FCM ──────────────────────────────────────────────────────────
 
 /**
- * Rejestruje token FCM urządzenia i ustawia handler powiadomień na pierwszym planie.
- * Wywoływany globalnie w App.tsx — raz per sesja autoryzacji.
+ * Zarządza stanem zgody na powiadomienia push i rejestracją tokenu FCM.
  *
- * Fallback: jeśli Firebase nie jest skonfigurowany lub użytkownik odrzucił
- * uprawnienia do powiadomień — hook kończy się cicho bez błędu.
+ * Nie prosi automatycznie o zgodę — użytkownik musi kliknąć przycisk (UX + wymóg przeglądarki).
+ * Eksportuje:
+ *   - `permissionState` — aktualny stan zgody
+ *   - `requestPermission` — wywołaj z onClick przycisku
  */
 export function useFcmRegistration() {
   const { user } = useAuthStore()
   const { isAuthenticated } = useKindeAuth()
   const qc = useQueryClient()
   const registeredRef = useRef(false)
+  const listenerRef = useRef(false)
 
+  const [permissionState, setPermissionState] = useState<NotificationPermissionState>('default')
+  const [isRegistering, setIsRegistering] = useState(false)
+
+  // Odczytaj aktualny stan zgody przy montowaniu
   useEffect(() => {
-    if (!isAuthenticated || !user?.userId || registeredRef.current) return
+    if (!('Notification' in window)) {
+      setPermissionState('unsupported')
+      return
+    }
+    // Jeśli już 'granted' — od razu zarejestruj token (np. po odświeżeniu strony)
+    setPermissionState(Notification.permission as NotificationPermissionState)
+  }, [])
 
-    const registerToken = async () => {
-      try {
-        // Sprawdź obsługę FCM w przeglądarce
-        const supported = await isSupported()
-        if (!supported) return
+  // ── Rejestracja tokenu FCM (po udzieleniu zgody) ─────────────────────────
+  const registerToken = useCallback(async () => {
+    if (!isAuthenticated || !user?.userId) return
+    if (registeredRef.current) return
 
-        if (!('Notification' in window)) return
-        if (!('serviceWorker' in navigator)) return
+    try {
+      const supported = await isSupported()
+      if (!supported) return
 
-        const app = getFirebaseApp()
-        if (!app) return // Firebase nieskonfigurowany — pomiń
+      const app = getFirebaseApp()
+      if (!app) return
 
-        // Poproś o uprawnienia
-        const permission = await Notification.requestPermission()
-        if (permission !== 'granted') return
+      const messaging = getMessaging(app)
 
-        const messaging = getMessaging(app)
+      const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/',
+      })
 
-        // Zarejestruj Service Worker dla FCM (musi to być dedykowany SW)
-        const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/',
-        })
+      const token = await getToken(messaging, {
+        vapidKey:                import.meta.env.VITE_FIREBASE_VAPID_KEY,
+        serviceWorkerRegistration: swRegistration,
+      })
 
-        // Pobierz token FCM
-        const token = await getToken(messaging, {
-          vapidKey:                import.meta.env.VITE_FIREBASE_VAPID_KEY,
-          serviceWorkerRegistration: swRegistration,
-        })
+      if (!token) {
+        console.warn('[FCM] getToken() zwrócił pusty token.')
+        return
+      }
 
-        if (!token) {
-          console.warn('[FCM] getToken() zwrócił pusty token.')
-          return
+      const storedToken = localStorage.getItem(STORAGE_KEY)
+      if (storedToken !== token) {
+        if (storedToken) {
+          await usersApi.deleteDeviceToken(user.userId, storedToken).catch(() => {})
         }
+        await usersApi.registerDeviceToken(user.userId, { token, platform: 'Web' })
+        localStorage.setItem(STORAGE_KEY, token)
+      }
 
-        // Uaktualnij token jeśli się zmienił (np. po odinstalowaniu/reinstalacji app)
-        const storedToken = localStorage.getItem(STORAGE_KEY)
-        if (storedToken !== token) {
-          if (storedToken) {
-            // Usuń stary token z backendu (best-effort, nie blokuj przy błędzie)
-            await usersApi.deleteDeviceToken(user.userId, storedToken).catch(() => {})
-          }
-          await usersApi.registerDeviceToken(user.userId, { token, platform: 'Web' })
-          localStorage.setItem(STORAGE_KEY, token)
-        }
+      registeredRef.current = true
 
-        registeredRef.current = true
-
-        // ── Handler powiadomień na pierwszym planie ──────────────────────────
-        // Gdy aplikacja jest otwarta, FCM nie pokazuje powiadomienia systemowego.
-        // Zamiast tego invalidujemy query, żeby dane się odświeżyły.
+      // Handler powiadomień na pierwszym planie (rejestruj tylko raz)
+      if (!listenerRef.current) {
+        listenerRef.current = true
         onMessage(messaging, (payload) => {
           const orgId = payload.data?.['organizationId']
           if (orgId) {
             qc.invalidateQueries({ queryKey: messageKeys.all(orgId) })
           }
         })
-      } catch (err) {
-        // FCM jest best-effort — nie blokuj aplikacji
-        console.warn('[FCM] Rejestracja nie powiodła się:', err)
       }
+    } catch (err) {
+      console.warn('[FCM] Rejestracja nie powiodła się:', err)
     }
-
-    registerToken()
   }, [isAuthenticated, user?.userId, qc])
+
+  // Gdy zgoda jest już 'granted' (np. po odświeżeniu strony) — zarejestruj token automatycznie
+  useEffect(() => {
+    if (permissionState === 'granted' && isAuthenticated && user?.userId) {
+      registerToken()
+    }
+  }, [permissionState, isAuthenticated, user?.userId, registerToken])
+
+  // ── Publiczna funkcja: wywoływana kliknięciem przycisku ──────────────────
+  const requestPermission = useCallback(async () => {
+    if (!('Notification' in window)) return
+    if (isRegistering) return
+
+    setIsRegistering(true)
+    try {
+      const result = await Notification.requestPermission()
+      setPermissionState(result as NotificationPermissionState)
+
+      if (result === 'granted') {
+        await registerToken()
+      }
+    } catch (err) {
+      console.warn('[FCM] requestPermission() nie powiodło się:', err)
+    } finally {
+      setIsRegistering(false)
+    }
+  }, [isRegistering, registerToken])
+
+  return { permissionState, requestPermission, isRegistering }
 }
 
 // ── Hook wyrejestrowywania FCM (np. przy wylogowaniu) ────────────────────────

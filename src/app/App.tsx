@@ -3,11 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
 import { router } from './router'
-import { useFcmRegistration } from '@/features/notifications/use-fcm'
 import '@/i18n'
 
 function AppInner() {
-  useFcmRegistration()
   return (
     <>
       <RouterProvider router={router} />
