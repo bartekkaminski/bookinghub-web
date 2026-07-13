@@ -1,9 +1,10 @@
 import { useNavigate, useMatchRoute } from '@tanstack/react-router'
-import { Home, CalendarDays, MessageSquare, User, ClipboardList } from 'lucide-react'
+import { Home, CalendarDays, MessageSquare, User, ClipboardList, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { usePendingCancellationRequests } from '@/features/enrollments/use-cancellation-requests'
 import { usePendingEnrollmentRequests } from '@/features/enrollments/use-enrollments'
+import { useUnreadCount } from '@/features/notifications/use-messages'
 import { cn } from '@/shared/utils/cn'
 
 export function BottomNav({ orgId }: { orgId: string }) {
@@ -12,45 +13,78 @@ export function BottomNav({ orgId }: { orgId: string }) {
   const { t } = useTranslation()
   const { isAdminOrManager, isTrainer } = useAuthStore()
 
-  const canSeePending = isAdminOrManager() || isTrainer()
+  const canSeeOrgLists = isAdminOrManager() || isTrainer()
+  const isParticipantOnly = !canSeeOrgLists
 
-  const { data: pendingCancellations } = usePendingCancellationRequests(canSeePending ? orgId : '')
-  const { data: pendingEnrollments } = usePendingEnrollmentRequests(canSeePending ? orgId : '')
+  const { data: pendingCancellations } = usePendingCancellationRequests(canSeeOrgLists ? orgId : '')
+  const { data: pendingEnrollments } = usePendingEnrollmentRequests(canSeeOrgLists ? orgId : '')
   const pendingCount = (pendingCancellations?.length ?? 0) + (pendingEnrollments?.length ?? 0)
 
-  const baseItems = [
-    {
-      key: 'home',
-      label: t('nav.home'),
-      icon: <Home className="h-5 w-5" />,
-      href: `/app/org/${orgId}/dashboard`,
-    },
-    {
-      key: 'calendar',
-      label: t('nav.calendar'),
-      icon: <CalendarDays className="h-5 w-5" />,
-      href: `/app/org/${orgId}/calendar`,
-    },
-    {
-      key: 'messages',
-      label: t('nav.messages'),
-      icon: <MessageSquare className="h-5 w-5" />,
-      href: `/app/org/${orgId}/messages`,
-    },
-    ...(canSeePending ? [{
-      key: 'requests',
-      label: t('nav.requests'),
-      icon: <ClipboardList className="h-5 w-5" />,
-      href: `/app/org/${orgId}/pending-requests`,
-      badge: pendingCount > 0 ? pendingCount : undefined,
-    }] : []),
-    {
-      key: 'profile',
-      label: t('nav.profile'),
-      icon: <User className="h-5 w-5" />,
-      href: `/app/org/${orgId}/profile`,
-    },
-  ]
+  const { data: unreadData } = useUnreadCount(orgId)
+  const unreadCount = unreadData?.unreadCount ?? 0
+
+  const baseItems = isParticipantOnly
+    ? [
+        {
+          key: 'calendar',
+          label: t('nav.calendar'),
+          icon: <CalendarDays className="h-5 w-5" />,
+          href: `/app/org/${orgId}/calendar`,
+        },
+        {
+          key: 'locations',
+          label: t('nav.locations'),
+          icon: <MapPin className="h-5 w-5" />,
+          href: `/app/org/${orgId}/locations`,
+        },
+        {
+          key: 'messages',
+          label: t('nav.messages'),
+          icon: <MessageSquare className="h-5 w-5" />,
+          href: `/app/org/${orgId}/messages`,
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        {
+          key: 'profile',
+          label: t('nav.profile'),
+          icon: <User className="h-5 w-5" />,
+          href: `/app/org/${orgId}/profile`,
+        },
+      ]
+    : [
+        {
+          key: 'home',
+          label: t('nav.home'),
+          icon: <Home className="h-5 w-5" />,
+          href: `/app/org/${orgId}/dashboard`,
+        },
+        {
+          key: 'calendar',
+          label: t('nav.calendar'),
+          icon: <CalendarDays className="h-5 w-5" />,
+          href: `/app/org/${orgId}/calendar`,
+        },
+        {
+          key: 'messages',
+          label: t('nav.messages'),
+          icon: <MessageSquare className="h-5 w-5" />,
+          href: `/app/org/${orgId}/messages`,
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        ...(canSeeOrgLists ? [{
+          key: 'requests',
+          label: t('nav.requests'),
+          icon: <ClipboardList className="h-5 w-5" />,
+          href: `/app/org/${orgId}/pending-requests`,
+          badge: pendingCount > 0 ? pendingCount : undefined,
+        }] : []),
+        {
+          key: 'profile',
+          label: t('nav.profile'),
+          icon: <User className="h-5 w-5" />,
+          href: `/app/org/${orgId}/profile`,
+        },
+      ]
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border bottom-nav-safe">

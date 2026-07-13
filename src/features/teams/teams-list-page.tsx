@@ -26,7 +26,10 @@ export function TeamsListPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading, isError, refetch } = useTeams(orgId, { search: debouncedSearch || undefined, pageSize: 50 })
+  const { data, isLoading, isError, refetch } = useTeams(orgId, {
+    search: debouncedSearch || undefined,
+    pageSize: 50,
+  })
   const createMutation = useCreateTeam(orgId)
 
   const handleCreate = async (data: CreateTeamRequest) => {

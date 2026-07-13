@@ -41,6 +41,7 @@ import type {
   CreateLocationRequest,
   UpdateLocationRequest,
   MessageSummaryResponse,
+  ConversationSummaryResponse,
   MessageDetailResponse,
   SendMessageRequest,
   ReplyMessageRequest,
@@ -394,6 +395,12 @@ export const eventSeriesApi = {
 // ── Messages ──────────────────────────────────────────────────────────────────
 
 export const messagesApi = {
+  conversations: (organizationId: string, params?: MessageFilterParams) =>
+    api.get<PagedResult<ConversationSummaryResponse>>(
+      `/api/organizations/${organizationId}/messages/conversations`,
+      params as Record<string, string | number | boolean | undefined>
+    ),
+
   inbox: (organizationId: string, params?: MessageFilterParams) =>
     api.get<PagedResult<MessageSummaryResponse>>(
       `/api/organizations/${organizationId}/messages/inbox`,

@@ -18,13 +18,15 @@ import { formatRrule } from './use-event-series'
 export function EventSeriesListPage() {
   const { orgId } = useParams({ strict: false }) as { orgId: string }
   const navigate = useNavigate()
-  const { isAdminOrManager } = useAuthStore()
+  const { isAdminOrManager, isTrainer } = useAuthStore()
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading, isError, refetch } = useEventSeriesList(orgId, {
+  const canView = isAdminOrManager() || isTrainer()
+
+  const { data, isLoading, isError, refetch } = useEventSeriesList(canView ? orgId : '', {
     search: debouncedSearch || undefined,
     pageSize: 50,
   })

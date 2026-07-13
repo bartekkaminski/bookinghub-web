@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { Users, Grid3X3, UsersRound, MapPin, CalendarDays, CalendarRange, ChevronRight, Loader2, ClipboardList } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -21,16 +21,22 @@ export function DashboardPage() {
   const { user, isAdminOrManager, isTrainer } = useAuthStore()
   const { t } = useTranslation()
 
-  const canSeePending = isAdminOrManager() || isTrainer()
+  const canSeeOrgLists = isAdminOrManager() || isTrainer()
+  const isParticipantOnly = !canSeeOrgLists
+
+  useEffect(() => {
+    if (isParticipantOnly) {
+      navigate({ to: `/app/org/${orgId}/calendar`, replace: true })
+    }
+  }, [isParticipantOnly, orgId, navigate])
 
   const { data: org, isLoading, isError, refetch } = useOrganization(orgId)
-  const { data: pendingCancellations } = usePendingCancellationRequests(
-    canSeePending ? orgId : ''
-  )
-  const { data: pendingEnrollments } = usePendingEnrollmentRequests(
-    canSeePending ? orgId : ''
-  )
+  const { data: pendingCancellations } = usePendingCancellationRequests(canSeeOrgLists ? orgId : '')
+  const { data: pendingEnrollments } = usePendingEnrollmentRequests(canSeeOrgLists ? orgId : '')
+
   const pendingCount = (pendingCancellations?.length ?? 0) + (pendingEnrollments?.length ?? 0)
+
+  if (isParticipantOnly) return null
 
   if (isLoading) {
     return (
@@ -50,14 +56,14 @@ export function DashboardPage() {
 
   const quickLinks = [
     { label: t('dashboard.calendar'), icon: <CalendarDays className="h-5 w-5" />, href: `/app/org/${orgId}/calendar` },
-    { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/app/org/${orgId}/members` },
-    { label: t('dashboard.groups'), icon: <Grid3X3 className="h-5 w-5" />, href: `/app/org/${orgId}/groups` },
-    { label: t('dashboard.teams'), icon: <UsersRound className="h-5 w-5" />, href: `/app/org/${orgId}/teams` },
+    ...(canSeeOrgLists ? [
+      { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/app/org/${orgId}/members` },
+      { label: t('dashboard.groups'), icon: <Grid3X3 className="h-5 w-5" />, href: `/app/org/${orgId}/groups` },
+      { label: t('dashboard.teams'), icon: <UsersRound className="h-5 w-5" />, href: `/app/org/${orgId}/teams` },
+      { label: t('dashboard.eventSeries'), icon: <CalendarRange className="h-5 w-5" />, href: `/app/org/${orgId}/event-series` },
+      { label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/app/org/${orgId}/pending-requests` },
+    ] : []),
     { label: t('dashboard.locations'), icon: <MapPin className="h-5 w-5" />, href: `/app/org/${orgId}/locations` },
-    { label: t('dashboard.eventSeries'), icon: <CalendarRange className="h-5 w-5" />, href: `/app/org/${orgId}/event-series` },
-    ...(canSeePending
-      ? [{ label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/app/org/${orgId}/pending-requests` }]
-      : []),
   ]
 
   return (
@@ -71,7 +77,7 @@ export function DashboardPage() {
       <h1 className="text-2xl font-bold text-center mt-5 mb-7">{org?.name}</h1>
 
       {/* Baner oczekujących wniosków */}
-      {canSeePending && pendingCount > 0 && (
+      {canSeeOrgLists && pendingCount > 0 && (
         <button
           onClick={() => navigate({ to: `/app/org/${orgId}/pending-requests` })}
           className="w-full rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 px-4 py-3.5 flex items-center gap-3 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors text-left mb-2"

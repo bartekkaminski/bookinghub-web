@@ -190,6 +190,7 @@ export interface MemberDetailResponse {
 export interface MemberGroupInfo {
   groupId: string
   groupName: string
+  color?: string
 }
 
 export interface MemberTeamInfo {
@@ -419,21 +420,45 @@ export interface UpdateLocationRequest {
 export interface MessageSummaryResponse {
   id: string
   subject: string
-  body: string
+  bodyPreview: string
   senderMemberId: string
-  senderDisplayName: string
+  senderName: string
   sentAt: string
   isAutomatic: boolean
   isRead?: boolean
-  replyCount: number
+  recipientsCount: number
+  repliesCount: number
+  relatedEventId?: string
+  parentMessageId?: string
+}
+
+export interface ConversationSummaryResponse {
+  id: string
+  subject: string
+  sentAt: string
+  lastMessageAt: string
+  lastMessagePreview: string
+  lastSenderName: string
+  hasUnread: boolean
+  unreadCount: number
+  repliesCount: number
+  isAutomatic: boolean
+  initiatedByMe: boolean
+  otherPartyName: string
+  otherPartyMemberId?: string
+  participantsCount: number
+  relatedEventId?: string
+  relatedEventTitle?: string
 }
 
 export interface MessageDetailResponse {
   id: string
+  organizationId: string
   subject: string
   body: string
   senderMemberId: string
-  senderDisplayName: string
+  senderName: string
+  senderPhotoUrl?: string
   sentAt: string
   isAutomatic: boolean
   recipients: MessageRecipientInfo[]

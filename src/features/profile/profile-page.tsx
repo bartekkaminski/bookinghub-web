@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
-import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe, Baby, Hash, Copy, Check } from 'lucide-react'
+import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe, Baby, Hash, Copy, Check, Grid3X3, UsersRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useMyPerson, useUpdatePerson } from './use-person'
 import { useOrganization, useUpdateOrganization } from '@/features/organizations/use-organizations'
+import { useMember } from '@/features/members/use-members'
 import { EditOrgDrawer } from '@/features/organizations/dashboard-page'
 import { useTheme } from '@/shared/hooks/use-theme'
 import { authApi } from '@/api/endpoints'
@@ -27,7 +28,7 @@ import i18n from '@/i18n'
 export function ProfilePage() {
   const { logout } = useKindeAuth()
   const navigate = useNavigate()
-  const { user, currentOrgId, getCurrentRoles, isAdminOrManager } = useAuthStore()
+  const { user, currentOrgId, getCurrentRoles, isAdminOrManager, isTrainer } = useAuthStore()
   const { t } = useTranslation()
   const [editOpen, setEditOpen] = useState(false)
   const [editOrgOpen, setEditOrgOpen] = useState(false)
@@ -38,10 +39,16 @@ export function ProfilePage() {
   const [codeCopied, setCodeCopied] = useState(false)
   const { isDark, setTheme } = useTheme()
 
+  const canSeeOrgLists = isAdminOrManager() || isTrainer()
+  const isParticipantOnly = !canSeeOrgLists
+  const currentMembership = user?.memberships.find(m => m.organizationId === currentOrgId)
+  const myMemberId = isParticipantOnly ? (currentMembership?.memberId ?? '') : ''
+
   const { data: person, isLoading, isError, refetch } = useMyPerson()
   const updateMutation = useUpdatePerson(person?.id ?? '')
   const { data: currentOrg } = useOrganization(currentOrgId ?? '')
   const updateOrgMutation = useUpdateOrganization(currentOrgId ?? '')
+  const { data: myMember } = useMember(currentOrgId ?? '', myMemberId)
 
   const roles = getCurrentRoles()
 
@@ -91,7 +98,6 @@ export function ProfilePage() {
   if (isLoading) return <DetailSkeleton />
   if (isError) return <ErrorState onRetry={refetch} />
 
-  const currentMembership = user?.memberships.find(m => m.organizationId === currentOrgId)
   const currentLang = i18n.language === 'en' ? t('profile.english') : t('profile.polish')
 
   return (
@@ -217,6 +223,58 @@ export function ProfilePage() {
               <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </button>
           </div>
+        )}
+
+        {/* Moje grupy i zespoły — tylko dla uczestnika */}
+        {isParticipantOnly && myMember && (
+          <>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground px-1">{t('profile.myGroups')}</p>
+              <div className="rounded-xl border border-border bg-card px-4 py-3">
+                {(myMember.groups?.length ?? 0) > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {myMember.groups!.map(g => (
+                      <span
+                        key={g.groupId}
+                        className="text-xs px-2.5 py-1 rounded-full text-white font-medium"
+                        style={{ backgroundColor: g.color ?? '#6d28d9' }}
+                      >
+                        {g.groupName}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Grid3X3 className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm">{t('profile.noGroupsAssigned')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground px-1">{t('profile.myTeams')}</p>
+              <div className="rounded-xl border border-border bg-card px-4 py-3">
+                {(myMember.teams?.length ?? 0) > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {myMember.teams!.map(team => (
+                      <span
+                        key={team.teamId}
+                        className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium"
+                      >
+                        {team.teamName ?? t('members.teamWithoutName')}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <UsersRound className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm">{t('profile.noTeamsAssigned')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
 
         {/* Logout */}
