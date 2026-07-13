@@ -33,7 +33,7 @@ export function useUnreadCount(orgId: string) {
     queryKey: messageKeys.unreadCount(orgId),
     queryFn: () => messagesApi.unreadCount(orgId),
     enabled: !!orgId,
-    refetchInterval: 60_000, // poll every minute
+    // Brak pollingu — badge jest aktualizowany przez invalidation z SignalR (useAppHub)
   })
 }
 
@@ -42,8 +42,8 @@ export function useMessage(orgId: string, messageId: string) {
     queryKey: messageKeys.detail(orgId, messageId),
     queryFn: () => messagesApi.getById(orgId, messageId),
     enabled: !!orgId && !!messageId,
-    staleTime: 0,          // zawsze pobieraj świeże dane przy wejściu na wątek
-    refetchInterval: 15_000, // co 15s odświeżaj gdy wątek jest otwarty
+    staleTime: 0, // zawsze odświeżaj przy wejściu na wątek
+    // Brak refetchInterval — aktualizacje przychodzą przez SignalR (useAppHub)
   })
 }
 

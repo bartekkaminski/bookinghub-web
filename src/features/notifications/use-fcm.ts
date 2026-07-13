@@ -1,58 +1,120 @@
 import { useEffect, useRef } from 'react'
-import { useAuthStore } from '@/features/auth/auth-store'
-import { usersApi } from '@/api/endpoints'
+import { useQueryClient } from '@tanstack/react-query'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
+import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging'
+import { usersApi } from '@/api/endpoints'
+import { useAuthStore } from '@/features/auth/auth-store'
+import { messageKeys } from '@/features/notifications/use-messages'
 
 const STORAGE_KEY = 'bookinghub-fcm-token'
 
+// ── Inicjalizacja Firebase (leniwa, singleton) ───────────────────────────────
+let firebaseApp: FirebaseApp | null = null
+
+function getFirebaseApp(): FirebaseApp | null {
+  // Jeśli brak konfiguracji (np. środowisko developerskie), zwróć null
+  if (!import.meta.env.VITE_FIREBASE_APP_ID) return null
+
+  if (getApps().length > 0) return getApps()[0]!
+
+  firebaseApp = initializeApp({
+    apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  })
+
+  return firebaseApp
+}
+
+// ── Hook rejestracji FCM (wywoływany w App.tsx — globalnie) ──────────────────
+
+/**
+ * Rejestruje token FCM urządzenia i ustawia handler powiadomień na pierwszym planie.
+ * Wywoływany globalnie w App.tsx — raz per sesja autoryzacji.
+ *
+ * Fallback: jeśli Firebase nie jest skonfigurowany lub użytkownik odrzucił
+ * uprawnienia do powiadomień — hook kończy się cicho bez błędu.
+ */
 export function useFcmRegistration() {
   const { user } = useAuthStore()
   const { isAuthenticated } = useKindeAuth()
+  const qc = useQueryClient()
   const registeredRef = useRef(false)
 
   useEffect(() => {
     if (!isAuthenticated || !user?.userId || registeredRef.current) return
 
-    // Check if Notification API is available
-    if (!('Notification' in window)) return
-
-    // Check if service worker is supported
-    if (!('serviceWorker' in navigator)) return
-
     const registerToken = async () => {
       try {
-        // Request permission
+        // Sprawdź obsługę FCM w przeglądarce
+        const supported = await isSupported()
+        if (!supported) return
+
+        if (!('Notification' in window)) return
+        if (!('serviceWorker' in navigator)) return
+
+        const app = getFirebaseApp()
+        if (!app) return // Firebase nieskonfigurowany — pomiń
+
+        // Poproś o uprawnienia
         const permission = await Notification.requestPermission()
         if (permission !== 'granted') return
 
-        // In a real app, initialize Firebase here and get the FCM token
-        // For now, we store the intent and the architecture is ready
-        const existingToken = localStorage.getItem(STORAGE_KEY)
-        if (!existingToken) {
-          // Placeholder — in production replace with:
-          // import { getMessaging, getToken } from 'firebase/messaging'
-          // const messaging = getMessaging(firebaseApp)
-          // const token = await getToken(messaging, { vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY })
-          const mockToken = `web-pwa-${user.userId}-${Date.now()}`
+        const messaging = getMessaging(app)
 
-          await usersApi.registerDeviceToken(user.userId, {
-            token: mockToken,
-            platform: 'Web',
-          })
+        // Zarejestruj Service Worker dla FCM (musi to być dedykowany SW)
+        const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/',
+        })
 
-          localStorage.setItem(STORAGE_KEY, mockToken)
+        // Pobierz token FCM
+        const token = await getToken(messaging, {
+          vapidKey:                import.meta.env.VITE_FIREBASE_VAPID_KEY,
+          serviceWorkerRegistration: swRegistration,
+        })
+
+        if (!token) {
+          console.warn('[FCM] getToken() zwrócił pusty token.')
+          return
+        }
+
+        // Uaktualnij token jeśli się zmienił (np. po odinstalowaniu/reinstalacji app)
+        const storedToken = localStorage.getItem(STORAGE_KEY)
+        if (storedToken !== token) {
+          if (storedToken) {
+            // Usuń stary token z backendu (best-effort, nie blokuj przy błędzie)
+            await usersApi.deleteDeviceToken(user.userId, storedToken).catch(() => {})
+          }
+          await usersApi.registerDeviceToken(user.userId, { token, platform: 'Web' })
+          localStorage.setItem(STORAGE_KEY, token)
         }
 
         registeredRef.current = true
+
+        // ── Handler powiadomień na pierwszym planie ──────────────────────────
+        // Gdy aplikacja jest otwarta, FCM nie pokazuje powiadomienia systemowego.
+        // Zamiast tego invalidujemy query, żeby dane się odświeżyły.
+        onMessage(messaging, (payload) => {
+          const orgId = payload.data?.['organizationId']
+          if (orgId) {
+            qc.invalidateQueries({ queryKey: messageKeys.all(orgId) })
+          }
+        })
       } catch (err) {
-        // FCM registration is best-effort, don't block app
-        console.warn('FCM registration failed:', err)
+        // FCM jest best-effort — nie blokuj aplikacji
+        console.warn('[FCM] Rejestracja nie powiodła się:', err)
       }
     }
 
     registerToken()
-  }, [isAuthenticated, user?.userId])
+  }, [isAuthenticated, user?.userId, qc])
 }
+
+// ── Hook wyrejestrowywania FCM (np. przy wylogowaniu) ────────────────────────
 
 export function useUnregisterFcm() {
   const { user } = useAuthStore()
@@ -65,7 +127,7 @@ export function useUnregisterFcm() {
       await usersApi.deleteDeviceToken(user.userId, token)
       localStorage.removeItem(STORAGE_KEY)
     } catch {
-      // Ignore cleanup errors
+      // Ignoruj błędy przy czyszczeniu
     }
   }
 }
