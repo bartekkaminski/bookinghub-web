@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, X } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, memberKeys } from './use-members'
+import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, useAllMembers, memberKeys } from './use-members'
 import { useTrainers } from './use-members'
+import { usePersonChildren, useAddChild, useRemoveChild, usePerson, useRemoveParentLink, useAddParentChildLink } from '@/features/profile/use-person'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
@@ -32,6 +33,11 @@ export function MemberDetailPage() {
   const [addRoleOpen, setAddRoleOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [trainerDrawerOpen, setTrainerDrawerOpen] = useState(false)
+  const [childrenDrawerOpen, setChildrenDrawerOpen] = useState(false)
+  const [parentDrawerOpen, setParentDrawerOpen] = useState(false)
+  const [removeChildTarget, setRemoveChildTarget] = useState<{ id: string; name: string } | null>(null)
+  const [removeParentTarget, setRemoveParentTarget] = useState<{ id: string; name: string } | null>(null)
+  const [removeTrainerTarget, setRemoveTrainerTarget] = useState<{ id: string; name: string } | null>(null)
 
   const { data: member, isLoading, isError, refetch } = useMember(orgId, memberId)
   const updateMutation = useUpdateMember(orgId, memberId)
@@ -40,6 +46,13 @@ export function MemberDetailPage() {
   const removeRoleMutation = useRemoveMemberRole(orgId, memberId)
   const assignTrainerM = useAssignTrainer(orgId)
   const removeTrainerM = useRemoveTrainerFromMember(orgId)
+
+  const { data: children } = usePersonChildren(member?.personId ?? '')
+  const { data: personDetail } = usePerson(member?.personId ?? '')
+  const addChildM = useAddChild(member?.personId ?? '')
+  const removeChildM = useRemoveChild(member?.personId ?? '')
+  const removeParentM = useRemoveParentLink()
+  const addParentM = useAddParentChildLink()
 
   const isOwnProfile = user?.memberships.some(m => m.organizationId === orgId && member?.personId === user.personId)
   const canEdit = isAdminOrManager() || isOwnProfile
@@ -169,32 +182,95 @@ export function MemberDetailPage() {
               <p className="text-sm text-muted-foreground px-1 pt-1">{t('members.noTrainers')}</p>
             ) : (
               member?.assignedTrainers.map((tr) => (
-                <div key={tr.trainerId} className="rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3">
-                  <UserCheck className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm font-medium flex-1">{tr.trainerName}</span>
-                  {canManageTrainers && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          await removeTrainerM.mutateAsync({ memberId, trainerId: tr.trainerId })
-                          toast.success(t('members.trainerRemoved'))
-                        } catch {
-                          toast.error(t('members.trainerRemoveFailed'))
-                        }
-                      }}
-                      disabled={removeTrainerM.isPending}
-                      className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                      aria-label="Usuń trenera"
-                    >
-                      {removeTrainerM.isPending
-                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        : <X className="h-3.5 w-3.5" />}
-                    </button>
+                <button
+                  key={tr.trainerMemberId}
+                  onClick={() => canManageTrainers
+                    ? setRemoveTrainerTarget({ id: tr.trainerMemberId, name: tr.displayName })
+                    : undefined}
+                  className={cn(
+                    'w-full rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3 text-left',
+                    canManageTrainers && 'hover:bg-accent transition-colors'
                   )}
-                </div>
+                >
+                  <UserCheck className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm font-medium flex-1">{tr.displayName}</span>
+                  {canManageTrainers && <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                </button>
               ))
             )}
           </div>
+        )}
+
+        {canManageRoles && (
+          <>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground px-1 mb-1">{t('members.childrenSection')}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setChildrenDrawerOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {t('members.addChild')}
+              </Button>
+              {(children?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground px-1 pt-1">{t('members.noChildren')}</p>
+              ) : (
+                children?.map((child) => (
+                  <button
+                    key={child.id}
+                    onClick={() => setRemoveChildTarget({ id: child.id, name: child.fullName ?? '—' })}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+                  >
+                    <Baby className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <Avatar className="h-7 w-7 flex-shrink-0">
+                      <AvatarImage src={child.photoUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {child.fullName ? getInitials(child.fullName) : <User className="h-3 w-3" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium flex-1">{child.fullName ?? '—'}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground px-1 mb-1">{t('members.parentsSection')}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setParentDrawerOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {t('members.addParent')}
+              </Button>
+              {(personDetail?.parents.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground px-1 pt-1">{t('members.noParents')}</p>
+              ) : (
+                personDetail?.parents.map((parent) => (
+                  <button
+                    key={parent.id}
+                    onClick={() => setRemoveParentTarget({ id: parent.id, name: parent.fullName ?? '—' })}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+                  >
+                    <Users2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <Avatar className="h-7 w-7 flex-shrink-0">
+                      <AvatarImage src={parent.photoUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {parent.fullName ? getInitials(parent.fullName) : <User className="h-3 w-3" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium flex-1">{parent.fullName ?? '—'}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </>
         )}
 
         {canToggleActive && (
@@ -241,12 +317,86 @@ export function MemberDetailPage() {
           onClose={() => setTrainerDrawerOpen(false)}
           orgId={orgId}
           memberId={memberId}
-          assignedTrainerIds={member.assignedTrainers.map(t => t.trainerId)}
+          assignedTrainerIds={member.assignedTrainers.map(t => t.trainerMemberId)}
           onAssign={async (trainerId) => {
             await assignTrainerM.mutateAsync({ memberId, data: { trainerMemberId: trainerId } })
           }}
         />
       )}
+
+      {canManageRoles && member && (
+        <AssignChildDrawer
+          open={childrenDrawerOpen}
+          onClose={() => setChildrenDrawerOpen(false)}
+          orgId={orgId}
+          parentPersonId={member.personId}
+          assignedChildPersonIds={(children ?? []).map(c => c.id)}
+          onAssign={async (childPersonId) => {
+            await addChildM.mutateAsync({ parentPersonId: member.personId, childPersonId })
+          }}
+        />
+      )}
+
+      {canManageRoles && member && (
+        <AssignParentDrawer
+          open={parentDrawerOpen}
+          onClose={() => setParentDrawerOpen(false)}
+          orgId={orgId}
+          childPersonId={member.personId}
+          assignedParentPersonIds={(personDetail?.parents ?? []).map(p => p.id)}
+          onAssign={async (parentPersonId) => {
+            await addParentM.mutateAsync({ parentPersonId, childPersonId: member.personId })
+          }}
+        />
+      )}
+
+      <RemoveTrainerConfirmDrawer
+        target={removeTrainerTarget}
+        onClose={() => setRemoveTrainerTarget(null)}
+        isLoading={removeTrainerM.isPending}
+        onConfirm={async () => {
+          if (!removeTrainerTarget) return
+          try {
+            await removeTrainerM.mutateAsync({ memberId, trainerId: removeTrainerTarget.id })
+            setRemoveTrainerTarget(null)
+            toast.success(t('members.trainerRemoved'))
+          } catch {
+            toast.error(t('members.trainerRemoveFailed'))
+          }
+        }}
+      />
+
+      <RemoveChildConfirmDrawer
+        target={removeChildTarget}
+        onClose={() => setRemoveChildTarget(null)}
+        isLoading={removeChildM.isPending}
+        onConfirm={async () => {
+          if (!removeChildTarget) return
+          try {
+            await removeChildM.mutateAsync(removeChildTarget.id)
+            setRemoveChildTarget(null)
+            toast.success(t('members.childRemoved'))
+          } catch {
+            toast.error(t('members.childRemoveFailed'))
+          }
+        }}
+      />
+
+      <RemoveParentConfirmDrawer
+        target={removeParentTarget}
+        onClose={() => setRemoveParentTarget(null)}
+        isLoading={removeParentM.isPending}
+        onConfirm={async () => {
+          if (!removeParentTarget || !member?.personId) return
+          try {
+            await removeParentM.mutateAsync({ parentPersonId: removeParentTarget.id, childPersonId: member.personId })
+            setRemoveParentTarget(null)
+            toast.success(t('members.parentRemoved'))
+          } catch {
+            toast.error(t('members.parentRemoveFailed'))
+          }
+        }}
+      />
     </div>
   )
 }
@@ -431,6 +581,299 @@ function AssignParticipantTrainerDrawer({
                     ) : loading ? (
                       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <DrawerFooter>
+          <Button variant="outline" onClick={onClose} className="w-full">
+            {t('common.close')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function RemoveChildConfirmDrawer({ target, onClose, isLoading, onConfirm }: {
+  target: { id: string; name: string } | null
+  onClose: () => void
+  isLoading: boolean
+  onConfirm: () => Promise<void>
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={!!target} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.removeChildConfirmTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            <Baby className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm font-medium">{target?.name}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t('members.removeChildConfirmDesc', { name: target?.name })}
+          </p>
+        </div>
+        <DrawerFooter>
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={isLoading}
+            onClick={onConfirm}
+          >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {t('members.removeChildBtn')}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function RemoveTrainerConfirmDrawer({ target, onClose, isLoading, onConfirm }: {
+  target: { id: string; name: string } | null
+  onClose: () => void
+  isLoading: boolean
+  onConfirm: () => Promise<void>
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={!!target} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.removeTrainerConfirmTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            <UserCheck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm font-medium">{target?.name}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t('members.removeTrainerConfirmDesc', { name: target?.name })}
+          </p>
+        </div>
+        <DrawerFooter>
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={isLoading}
+            onClick={onConfirm}
+          >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {t('members.removeTrainerBtn')}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function RemoveParentConfirmDrawer({ target, onClose, isLoading, onConfirm }: {
+  target: { id: string; name: string } | null
+  onClose: () => void
+  isLoading: boolean
+  onConfirm: () => Promise<void>
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={!!target} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.removeParentConfirmTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            <Users2 className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm font-medium">{target?.name}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t('members.removeParentConfirmDesc', { name: target?.name })}
+          </p>
+        </div>
+        <DrawerFooter>
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={isLoading}
+            onClick={onConfirm}
+          >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {t('members.removeParentBtn')}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function AssignChildDrawer({
+  open, onClose, orgId, parentPersonId, assignedChildPersonIds, onAssign,
+}: {
+  open: boolean
+  onClose: () => void
+  orgId: string
+  parentPersonId: string
+  assignedChildPersonIds: string[]
+  onAssign: (childPersonId: string) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const { data: allMembers, isLoading } = useAllMembers(orgId)
+
+  const available = (allMembers ?? []).filter(
+    m =>
+      m.personId !== parentPersonId &&
+      !assignedChildPersonIds.includes(m.personId) &&
+      m.roles.includes('Participant')
+  )
+
+  const handleAssign = async (personId: string) => {
+    setPendingId(personId)
+    try {
+      await onAssign(personId)
+      toast.success(t('members.childAdded'))
+      onClose()
+    } catch {
+      toast.error(t('members.childAddFailed'))
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.assignChildTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : available.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">{t('members.noAvailablePersons')}</p>
+          ) : (
+            <div className="space-y-1 max-h-96 overflow-y-auto -mx-4 px-4">
+              {available.map((m) => {
+                const loading = pendingId === m.personId
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => handleAssign(m.personId)}
+                    disabled={loading}
+                    className={cn(
+                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left',
+                      loading ? 'opacity-60 cursor-default' : 'hover:bg-accent cursor-pointer',
+                    )}
+                  >
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={m.photoUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(m.displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 text-sm font-medium">{m.displayName}</span>
+                    {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <DrawerFooter>
+          <Button variant="outline" onClick={onClose} className="w-full">
+            {t('common.close')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function AssignParentDrawer({
+  open, onClose, orgId, childPersonId, assignedParentPersonIds, onAssign,
+}: {
+  open: boolean
+  onClose: () => void
+  orgId: string
+  childPersonId: string
+  assignedParentPersonIds: string[]
+  onAssign: (parentPersonId: string) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const { data: allMembers, isLoading } = useAllMembers(orgId)
+
+  const available = (allMembers ?? []).filter(
+    m =>
+      m.personId !== childPersonId &&
+      !assignedParentPersonIds.includes(m.personId) &&
+      m.roles.includes('Participant')
+  )
+
+  const handleAssign = async (personId: string) => {
+    setPendingId(personId)
+    try {
+      await onAssign(personId)
+      toast.success(t('members.parentAdded'))
+      onClose()
+    } catch {
+      toast.error(t('members.parentAddFailed'))
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('members.assignParentTitle')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : available.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">{t('members.noAvailablePersons')}</p>
+          ) : (
+            <div className="space-y-1 max-h-96 overflow-y-auto -mx-4 px-4">
+              {available.map((m) => {
+                const loading = pendingId === m.personId
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => handleAssign(m.personId)}
+                    disabled={loading}
+                    className={cn(
+                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors text-left',
+                      loading ? 'opacity-60 cursor-default' : 'hover:bg-accent cursor-pointer',
+                    )}
+                  >
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={m.photoUrl} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(m.displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 text-sm font-medium">{m.displayName}</span>
+                    {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </button>
                 )
               })}

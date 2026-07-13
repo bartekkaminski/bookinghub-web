@@ -48,7 +48,7 @@ export function TeamDetailPage() {
   }
 
   const currentMemberIds = new Set(team?.members.map(m => m.memberId) ?? [])
-  const currentTrainerIds = new Set(team?.trainers.map(tr => tr.trainerId) ?? [])
+  const currentTrainerIds = new Set(team?.trainers.map(tr => tr.trainerMemberId) ?? [])
   const availableMembers = allMembers?.filter(m => !currentMemberIds.has(m.id)) ?? []
   const availableTrainers = allTrainers?.filter(tr => !currentTrainerIds.has(tr.id)) ?? []
 
@@ -123,14 +123,16 @@ export function TeamDetailPage() {
             ) : (
               <div className="mt-2 space-y-1">
                 {team?.trainers.map((tr) => (
-                  <div key={tr.trainerId} className="flex items-center gap-3 px-2 py-2.5 rounded-lg">
+                  <div key={tr.trainerMemberId} className="flex items-center gap-3 px-2 py-2.5 rounded-lg">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={tr.photoUrl} />
-                      <AvatarFallback className="bg-emerald-600/20 text-emerald-600 text-xs">{getInitials(tr.displayName)}</AvatarFallback>
+                      <AvatarFallback
+                        style={tr.color ? { backgroundColor: tr.color } : undefined}
+                        className={!tr.color ? 'bg-emerald-600/20 text-emerald-600 text-xs' : 'text-white text-xs'}
+                      >{getInitials(tr.displayName)}</AvatarFallback>
                     </Avatar>
                     <span className="flex-1 text-sm font-medium">{tr.displayName}</span>
                     {isAdminOrManager() && (
-                      <button onClick={() => removeTrainerMutation.mutate(tr.trainerId)} className="text-muted-foreground hover:text-destructive">
+                      <button onClick={() => removeTrainerMutation.mutate(tr.trainerMemberId)} className="text-muted-foreground hover:text-destructive">
                         <X className="h-4 w-4" />
                       </button>
                     )}

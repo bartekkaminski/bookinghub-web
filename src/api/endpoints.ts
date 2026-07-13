@@ -16,6 +16,7 @@ import type {
   UpdateOrganizationRequest,
   MemberSummaryResponse,
   MemberDetailResponse,
+  MemberLookupResponse,
   AddMemberRequest,
   CreateMemberWithAccountRequest,
   CreateMemberProfileRequest,
@@ -176,6 +177,12 @@ export const membersApi = {
 
   getById: (organizationId: string, memberId: string) =>
     api.get<MemberDetailResponse>(`/api/organizations/${organizationId}/members/${memberId}`),
+
+  findByCode: (organizationId: string, code: string) =>
+    api.get<MemberLookupResponse>(
+      `/api/organizations/${organizationId}/members/find-by-code`,
+      { code: code.trim().toUpperCase() }
+    ),
 
   addExisting: (organizationId: string, data: AddMemberRequest) =>
     api.post<MemberDetailResponse>(`/api/organizations/${organizationId}/members/add-existing`, data),

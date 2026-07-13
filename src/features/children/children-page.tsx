@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { usePersonChildren } from '@/features/profile/use-person'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
@@ -10,6 +11,7 @@ import { getInitials, formatDate } from '@/shared/utils/format'
 import { Users2, User } from 'lucide-react'
 
 export function ChildrenPage() {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const personId = user?.personId ?? ''
 
@@ -18,7 +20,7 @@ export function ChildrenPage() {
   return (
     <div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-        <PageHeader title="Moje dzieci" />
+        <PageHeader title={t('children.pageTitle')} />
       </div>
 
       {isLoading ? (
@@ -28,13 +30,13 @@ export function ChildrenPage() {
       ) : children?.length === 0 ? (
         <EmptyState
           icon={<Users2 className="h-8 w-8" />}
-          title="Brak profili dzieci"
-          description="Skontaktuj się z administratorem, aby dodać profil dziecka do swojego konta"
+          title={t('children.noChildren')}
+          description={t('children.noChildrenDesc')}
         />
       ) : (
         <div className="p-4 space-y-2">
           <p className="text-xs text-muted-foreground mb-3">
-            Aby dodać dziecko, skontaktuj się z administratorem organizacji
+            {t('children.contactAdmin')}
           </p>
           {children?.map((child) => (
             <div
@@ -49,16 +51,16 @@ export function ChildrenPage() {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm">
-                  {child.fullName ?? 'Brak imienia'}
+                  {child.fullName ?? '—'}
                 </p>
                 {child.dateOfBirth && (
                   <p className="text-xs text-muted-foreground">
-                    Urodzony: {formatDate(child.dateOfBirth)}
+                    {t('children.bornOn', { date: formatDate(child.dateOfBirth) })}
                   </p>
                 )}
                 <div className="mt-1">
                   <Badge variant={child.hasAccount ? 'default' : 'secondary'} className="text-xs">
-                    {child.hasAccount ? 'Ma konto' : 'Bez konta'}
+                    {child.hasAccount ? t('children.hasAccount') : t('children.noAccount')}
                   </Badge>
                 </div>
               </div>

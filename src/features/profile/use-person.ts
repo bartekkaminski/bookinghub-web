@@ -46,7 +46,11 @@ export function useAddChild(personId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: AddParentChildRequest) => personsApi.addChild(personId, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: personKeys.children(personId) }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: personKeys.children(personId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(personId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(variables.childPersonId) })
+    },
   })
 }
 
@@ -54,6 +58,34 @@ export function useRemoveChild(personId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (childPersonId: string) => personsApi.removeChild(personId, childPersonId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: personKeys.children(personId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: personKeys.children(personId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(personId) })
+    },
+  })
+}
+
+export function useAddParentChildLink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ parentPersonId, childPersonId }: { parentPersonId: string; childPersonId: string }) =>
+      personsApi.addChild(parentPersonId, { parentPersonId, childPersonId }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: personKeys.children(vars.parentPersonId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(vars.childPersonId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(vars.parentPersonId) })
+    },
+  })
+}
+
+export function useRemoveParentLink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ parentPersonId, childPersonId }: { parentPersonId: string; childPersonId: string }) =>
+      personsApi.removeChild(parentPersonId, childPersonId),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: personKeys.children(vars.parentPersonId) })
+      qc.invalidateQueries({ queryKey: personKeys.detail(vars.childPersonId) })
+    },
   })
 }

@@ -11,6 +11,12 @@ import type {
   OrganizationMemberFilterParams,
 } from '@/api/types'
 
+export function useFindMemberByCode(orgId: string) {
+  return useMutation({
+    mutationFn: (code: string) => membersApi.findByCode(orgId, code),
+  })
+}
+
 export const memberKeys = {
   all: (orgId: string) => ['members', orgId] as const,
   lists: (orgId: string) => [...memberKeys.all(orgId), 'list'] as const,

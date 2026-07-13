@@ -88,6 +88,8 @@ export interface PersonDetailResponse {
   hasAccount: boolean
   userId?: string
   email?: string
+  /** Unikalny kod profilu — widoczny tylko właścicielowi konta, null gdy osoba bez konta */
+  profileCode?: string
   memberships: PersonMembershipInfo[]
   children: PersonSummaryResponse[]
   parents: PersonSummaryResponse[]
@@ -196,8 +198,15 @@ export interface MemberTeamInfo {
 }
 
 export interface MemberTrainerInfo {
-  trainerId: string
-  trainerName: string
+  trainerMemberId: string
+  displayName: string
+  color?: string
+}
+
+export interface MemberLookupResponse {
+  personId: string
+  fullName: string
+  isAlreadyMember: boolean
 }
 
 export interface AddMemberRequest {
@@ -344,9 +353,9 @@ export interface TeamMemberInfo {
 }
 
 export interface TeamTrainerInfo {
-  trainerId: string
+  trainerMemberId: string
   displayName: string
-  photoUrl?: string
+  color?: string
 }
 
 export interface CreateTeamRequest {

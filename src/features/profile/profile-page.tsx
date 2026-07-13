@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
-import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe } from 'lucide-react'
+import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe, Baby, Hash, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -35,6 +35,7 @@ export function ProfilePage() {
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [themeOpen, setThemeOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
   const { isDark, setTheme } = useTheme()
 
   const { data: person, isLoading, isError, refetch } = useMyPerson()
@@ -78,6 +79,14 @@ export function ProfilePage() {
   }
 
   const canManageOrg = isAdminOrManager()
+
+  const handleCopyCode = () => {
+    if (!person?.profileCode) return
+    navigator.clipboard.writeText(person.profileCode).then(() => {
+      setCodeCopied(true)
+      setTimeout(() => setCodeCopied(false), 2000)
+    })
+  }
 
   if (isLoading) return <DetailSkeleton />
   if (isError) return <ErrorState onRetry={refetch} />
@@ -166,6 +175,49 @@ export function ProfilePage() {
             <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </button>
         </div>
+
+        {/* Profile code — visible only to account owner, used by admins to add to org */}
+        {person?.profileCode && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('profile.myCode')}</p>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-3">
+                <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-lg font-mono font-semibold tracking-widest">
+                    {person.profileCode.slice(0, 4)}-{person.profileCode.slice(4)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('profile.myCodeDesc')}</p>
+                </div>
+                <button
+                  onClick={handleCopyCode}
+                  className="flex-shrink-0 p-2 rounded-lg hover:bg-accent transition-colors"
+                  aria-label={t('profile.copyCode')}
+                >
+                  {codeCopied
+                    ? <Check className="h-4 w-4 text-green-500" />
+                    : <Copy className="h-4 w-4 text-muted-foreground" />
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* My children */}
+        {(person?.children?.length ?? 0) > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('children.pageTitle')}</p>
+            <button
+              onClick={() => navigate({ to: `/app/org/${currentOrgId}/children` })}
+              className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+            >
+              <Baby className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-medium flex-1">{t('profile.myChildren')}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </button>
+          </div>
+        )}
 
         {/* Logout */}
         <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/5 hover:text-destructive"
