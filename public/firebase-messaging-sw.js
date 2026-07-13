@@ -29,9 +29,11 @@ messaging.onBackgroundMessage(async (payload) => {
   const appIsOpen = windowClients.some((c) => c.url.startsWith(self.location.origin))
   if (appIsOpen) return
 
-  const title    = payload.notification?.title ?? 'BookingHub'
-  const body     = payload.notification?.body  ?? ''
-  const actionUrl = payload.data?.actionUrl    ?? '/'
+  // Wszystkie dane są w payload.data (wysyłamy data-only bez pola notification,
+  // bo notification + data powoduje dublowanie: auto-show + onBackgroundMessage).
+  const title     = payload.data?.title    ?? payload.notification?.title ?? 'BookingHub'
+  const body      = payload.data?.body     ?? payload.notification?.body  ?? ''
+  const actionUrl = payload.data?.actionUrl ?? '/'
 
   self.registration.showNotification(title, {
     body,
