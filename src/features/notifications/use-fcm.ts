@@ -8,7 +8,7 @@ import { usersApi } from '@/api/endpoints'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { messageKeys } from '@/features/notifications/use-messages'
 
-const STORAGE_KEY = 'bookinghub-fcm-token'
+export const FCM_TOKEN_STORAGE_KEY = 'bookinghub-fcm-token'
 
 // ── Inicjalizacja Firebase (leniwa, singleton) ───────────────────────────────
 let firebaseApp: FirebaseApp | null = null
@@ -108,13 +108,13 @@ export function useFcmRegistration() {
 
       console.info('[FCM] Token uzyskany:', token.slice(0, 20) + '…')
 
-      const storedToken = localStorage.getItem(STORAGE_KEY)
+      const storedToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY)
       if (storedToken !== token) {
         if (storedToken) {
           await usersApi.deleteDeviceToken(user.userId, storedToken).catch(() => {})
         }
         await usersApi.registerDeviceToken(user.userId, { token, platform: 'Web' })
-        localStorage.setItem(STORAGE_KEY, token)
+        localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token)
         console.info('[FCM] Token zarejestrowany w backendzie.')
       } else {
         console.info('[FCM] Token bez zmian — rejestracja pominięta.')
@@ -177,12 +177,12 @@ export function useUnregisterFcm() {
   const { user } = useAuthStore()
 
   return async () => {
-    const token = localStorage.getItem(STORAGE_KEY)
+    const token = localStorage.getItem(FCM_TOKEN_STORAGE_KEY)
     if (!token || !user?.userId) return
 
     try {
       await usersApi.deleteDeviceToken(user.userId, token)
-      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(FCM_TOKEN_STORAGE_KEY)
     } catch {
       // Ignoruj błędy przy czyszczeniu
     }

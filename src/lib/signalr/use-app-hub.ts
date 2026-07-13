@@ -8,6 +8,7 @@ import {
 } from '@microsoft/signalr'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
 import { messageKeys } from '@/features/notifications/use-messages'
+import { FCM_TOKEN_STORAGE_KEY } from '@/features/notifications/use-fcm'
 
 const HUB_URL = `${import.meta.env.VITE_API_BASE_URL}/hubs/app`
 const HEARTBEAT_INTERVAL_MS = 60_000
@@ -116,9 +117,12 @@ export function useAppHub(orgId: string | undefined) {
         }
 
         // Heartbeat — informuje backend że użytkownik jest online (aktualizuje LastSeenAt)
+        // Przekazujemy token FCM tego urządzenia — backend aktualizuje TYLKO ten token,
+        // dzięki czemu desktop nie "ożywia" tokenu telefonu.
         heartbeatRef.current = setInterval(async () => {
           if (connection.state === HubConnectionState.Connected) {
-            try { await connection.invoke('Heartbeat') } catch { /* ignoruj */ }
+            const fcmToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY) ?? null
+            try { await connection.invoke('Heartbeat', fcmToken) } catch { /* ignoruj */ }
           }
         }, HEARTBEAT_INTERVAL_MS)
       } catch (err) {
