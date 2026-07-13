@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging'
+import { toast } from 'sonner'
 import { usersApi } from '@/api/endpoints'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { messageKeys } from '@/features/notifications/use-messages'
@@ -67,26 +68,45 @@ export function useFcmRegistration() {
 
     try {
       const supported = await isSupported()
-      if (!supported) return
+      if (!supported) {
+        console.warn('[FCM] Przeglądarka nie obsługuje FCM.')
+        return
+      }
 
       const app = getFirebaseApp()
-      if (!app) return
+      if (!app) {
+        console.warn('[FCM] Firebase nie jest skonfigurowany (brak VITE_FIREBASE_APP_ID).')
+        return
+      }
 
       const messaging = getMessaging(app)
 
-      const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-        scope: '/',
-      })
-
-      const token = await getToken(messaging, {
-        vapidKey:                import.meta.env.VITE_FIREBASE_VAPID_KEY,
-        serviceWorkerRegistration: swRegistration,
-      })
-
-      if (!token) {
-        console.warn('[FCM] getToken() zwrócił pusty token.')
+      let swRegistration: ServiceWorkerRegistration
+      try {
+        swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
+        console.info('[FCM] Service Worker zarejestrowany:', swRegistration.scope)
+      } catch (swErr) {
+        console.error('[FCM] Błąd rejestracji Service Workera:', swErr)
         return
       }
+
+      let token: string
+      try {
+        token = await getToken(messaging, {
+          vapidKey:                  import.meta.env.VITE_FIREBASE_VAPID_KEY,
+          serviceWorkerRegistration: swRegistration,
+        })
+      } catch (tokenErr) {
+        console.error('[FCM] Błąd getToken():', tokenErr)
+        return
+      }
+
+      if (!token) {
+        console.warn('[FCM] getToken() zwrócił pusty token — sprawdź VAPID key i konfigurację Firebase.')
+        return
+      }
+
+      console.info('[FCM] Token uzyskany:', token.slice(0, 20) + '…')
 
       const storedToken = localStorage.getItem(STORAGE_KEY)
       if (storedToken !== token) {
@@ -95,6 +115,9 @@ export function useFcmRegistration() {
         }
         await usersApi.registerDeviceToken(user.userId, { token, platform: 'Web' })
         localStorage.setItem(STORAGE_KEY, token)
+        console.info('[FCM] Token zarejestrowany w backendzie.')
+      } else {
+        console.info('[FCM] Token bez zmian — rejestracja pominięta.')
       }
 
       registeredRef.current = true
@@ -103,6 +126,7 @@ export function useFcmRegistration() {
       if (!listenerRef.current) {
         listenerRef.current = true
         onMessage(messaging, (payload) => {
+          console.info('[FCM] Powiadomienie na pierwszym planie:', payload)
           const orgId = payload.data?.['organizationId']
           if (orgId) {
             qc.invalidateQueries({ queryKey: messageKeys.all(orgId) })
@@ -110,7 +134,7 @@ export function useFcmRegistration() {
         })
       }
     } catch (err) {
-      console.warn('[FCM] Rejestracja nie powiodła się:', err)
+      console.error('[FCM] Nieoczekiwany błąd rejestracji:', err)
     }
   }, [isAuthenticated, user?.userId, qc])
 
@@ -133,6 +157,9 @@ export function useFcmRegistration() {
 
       if (result === 'granted') {
         await registerToken()
+        toast.success('Powiadomienia włączone')
+      } else if (result === 'denied') {
+        toast.error('Powiadomienia zablokowane — odblokuj je w ustawieniach przeglądarki')
       }
     } catch (err) {
       console.warn('[FCM] requestPermission() nie powiodło się:', err)
