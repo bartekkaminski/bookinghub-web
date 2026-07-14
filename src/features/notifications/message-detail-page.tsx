@@ -162,12 +162,12 @@ export function MessageDetailPage() {
             >
               {/* Sender name — show only on first bubble in group, and only for others */}
               {!isMe && !isSystem && msg.isFirst && (
-                <span className="text-xs text-muted-foreground px-3 mb-0.5 font-medium">
+                <span className="text-xs text-muted-foreground mb-0.5 font-medium">
                   {msg.senderName}
                 </span>
               )}
               {isSystem && msg.isFirst && (
-                <span className="text-xs text-amber-500 px-3 mb-0.5 flex items-center gap-1 font-medium">
+                <span className="text-xs text-amber-500 mb-0.5 flex items-center gap-1 font-medium">
                   <Bot className="h-3 w-3" />
                   {msg.senderName}
                 </span>
