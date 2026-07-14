@@ -103,7 +103,8 @@ function EventBlock({
       onClick={() => navigate({ to: `/app/org/${orgId}/events/${event.id}` as never })}
       title={event.title}
       className={cn(
-        'absolute rounded-md border-l-4 px-2 py-1 text-left overflow-hidden',
+        'absolute border px-2 py-1 text-left overflow-hidden',
+        'flex flex-col justify-start items-start',
         'text-xs transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         cancelled && 'opacity-50',
       )}
@@ -111,9 +112,9 @@ function EventBlock({
         top:    `${top}px`,
         height: `${height}px`,
         left:   `${col * colWidth}%`,
-        width:  `calc(${colWidth}% - 2px)`,
-        backgroundColor: `${event.color}22`,
-        borderLeftColor: event.color,
+        width:  `${colWidth}%`,
+        backgroundColor: event.color ? `${event.color}33` : 'hsl(var(--primary)/0.15)',
+        borderColor:     event.color ? `${event.color}66` : 'hsl(var(--primary)/0.4)',
       }}
     >
       <p className={cn('font-semibold leading-tight truncate', cancelled && 'line-through')}>
@@ -254,7 +255,7 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
             {/* Event blocks */}
             <div
               className="absolute"
-              style={{ left: 'calc(2.5rem + 0.75rem)', right: '0.5rem', top: 0, bottom: 0 }}
+              style={{ left: 'calc(2.5rem + 0.75rem)', right: 0, top: 0, bottom: 0 }}
             >
               {layouted.length === 0 && !isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
