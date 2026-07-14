@@ -114,7 +114,7 @@ export function MessageDetailPage() {
     : message?.senderName ?? ''
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-5rem)]">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex-shrink-0 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader

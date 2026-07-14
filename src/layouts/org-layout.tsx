@@ -15,14 +15,14 @@ export function OrgLayout() {
   const { permissionState, requestPermission, isRegistering } = useFcmRegistration()
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col h-dvh overflow-hidden bg-background">
       <NotificationPermissionBanner
         permissionState={permissionState}
         isRegistering={isRegistering}
         onRequestPermission={requestPermission}
       />
       <ConnectionStatusBar state={connectionState} />
-      <main className="flex-1 pb-20">
+      <main className="flex-1 min-h-0 overflow-y-auto pb-20">
         <Outlet />
       </main>
       <BottomNav orgId={orgId} />
