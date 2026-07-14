@@ -358,6 +358,8 @@ export function EventDetailPage() {
         orgId={orgId}
         eventId={eventId}
         assignedTrainerIds={event.trainers.map((tr) => tr.memberId)}
+        eventStartTime={event.startTime}
+        eventEndTime={event.endTime}
       />
       {canManage && (
         <>
