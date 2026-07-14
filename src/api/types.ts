@@ -415,6 +415,48 @@ export interface UpdateLocationRequest {
   isActive: boolean
 }
 
+// ── Location Schedule ─────────────────────────────────────────────────────────
+
+export type LocationOccupancy = 'None' | 'Partial' | 'Full'
+
+export interface LocationDaySummary {
+  date: string           // 'YYYY-MM-DD'
+  eventCount: number
+  coveredHours: number
+  occupancy: LocationOccupancy
+}
+
+export interface LocationMonthSummaryResponse {
+  year: number
+  month: number
+  days: LocationDaySummary[]
+}
+
+export interface LocationDayTeamInfo {
+  teamId: string
+  teamName?: string
+  memberCount: number
+}
+
+export interface LocationDayEventResponse {
+  id: string
+  title: string
+  startTime: string
+  endTime: string
+  eventType: EventType
+  status: EventStatus
+  color: string
+  groupId?: string
+  groupName?: string
+  individualCount: number
+  teams: LocationDayTeamInfo[]
+}
+
+export interface LocationDayScheduleResponse {
+  date: string           // 'YYYY-MM-DD'
+  events: LocationDayEventResponse[]
+}
+
 // ── Message ───────────────────────────────────────────────────────────────────
 
 export interface MessageSummaryResponse {

@@ -6,6 +6,10 @@ export const locationKeys = {
   all: (orgId: string) => ['locations', orgId] as const,
   lists: (orgId: string) => [...locationKeys.all(orgId), 'list'] as const,
   detail: (orgId: string, locationId: string) => [...locationKeys.all(orgId), 'detail', locationId] as const,
+  monthSchedule: (orgId: string, locationId: string, year: number, month: number) =>
+    [...locationKeys.all(orgId), 'schedule', locationId, 'month', year, month] as const,
+  daySchedule: (orgId: string, locationId: string, date: string) =>
+    [...locationKeys.all(orgId), 'schedule', locationId, 'day', date] as const,
 }
 
 export function useLocations(orgId: string, params?: LocationFilterParams) {
@@ -57,5 +61,32 @@ export function useDeleteLocation(orgId: string) {
   return useMutation({
     mutationFn: (locationId: string) => locationsApi.delete(orgId, locationId),
     onSuccess: () => qc.invalidateQueries({ queryKey: locationKeys.lists(orgId) }),
+  })
+}
+
+export function useLocationMonthSchedule(
+  orgId: string,
+  locationId: string,
+  year: number,
+  month: number,
+) {
+  return useQuery({
+    queryKey: locationKeys.monthSchedule(orgId, locationId, year, month),
+    queryFn: () => locationsApi.monthSchedule(orgId, locationId, year, month),
+    enabled: !!orgId && !!locationId,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useLocationDaySchedule(
+  orgId: string,
+  locationId: string,
+  date: string | null,
+) {
+  return useQuery({
+    queryKey: locationKeys.daySchedule(orgId, locationId, date ?? ''),
+    queryFn: () => locationsApi.daySchedule(orgId, locationId, date!),
+    enabled: !!orgId && !!locationId && !!date,
+    staleTime: 60 * 1000,
   })
 }

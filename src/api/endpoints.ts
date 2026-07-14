@@ -40,6 +40,8 @@ import type {
   LocationDetailResponse,
   CreateLocationRequest,
   UpdateLocationRequest,
+  LocationMonthSummaryResponse,
+  LocationDayScheduleResponse,
   MessageSummaryResponse,
   ConversationSummaryResponse,
   MessageDetailResponse,
@@ -313,6 +315,18 @@ export const locationsApi = {
 
   delete: (organizationId: string, locationId: string) =>
     api.delete(`/api/organizations/${organizationId}/locations/${locationId}`),
+
+  monthSchedule: (organizationId: string, locationId: string, year: number, month: number) =>
+    api.get<LocationMonthSummaryResponse>(
+      `/api/organizations/${organizationId}/locations/${locationId}/schedule/month`,
+      { year, month }
+    ),
+
+  daySchedule: (organizationId: string, locationId: string, date: string) =>
+    api.get<LocationDayScheduleResponse>(
+      `/api/organizations/${organizationId}/locations/${locationId}/schedule/day`,
+      { date }
+    ),
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────

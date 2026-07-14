@@ -662,6 +662,27 @@ const pl = {
     editTitle: 'Edytuj lokalizację',
     updated: 'Miejsce zajęć zaktualizowane',
     updateFailed: 'Nie udało się zaktualizować lokalizacji',
+    tabs: {
+      info: 'Informacje',
+    },
+    schedule: {
+      tab: 'Harmonogram',
+      legend: {
+        none: 'Wolne',
+        partial: 'Częściowo',
+        full: 'Zajęte',
+      },
+      month: {
+        prev: 'Poprzedni miesiąc',
+        next: 'Następny miesiąc',
+      },
+      day: {
+        noEvents: 'Brak zajęć tego dnia',
+        group: 'Grupa',
+        team: 'Zesp.',
+        persons: 'os.',
+      },
+    },
   },
   datePicker: {
     title: 'Wybierz datę',
@@ -1340,6 +1361,27 @@ const en: typeof pl = {
     editTitle: 'Edit location',
     updated: 'Location updated',
     updateFailed: 'Failed to update location',
+    tabs: {
+      info: 'Info',
+    },
+    schedule: {
+      tab: 'Schedule',
+      legend: {
+        none: 'Free',
+        partial: 'Partial',
+        full: 'Busy',
+      },
+      month: {
+        prev: 'Previous month',
+        next: 'Next month',
+      },
+      day: {
+        noEvents: 'No sessions this day',
+        group: 'Group',
+        team: 'Team',
+        persons: 'people',
+      },
+    },
   },
   datePicker: {
     title: 'Select date',
