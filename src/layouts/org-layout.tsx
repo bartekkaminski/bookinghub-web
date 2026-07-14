@@ -15,7 +15,7 @@ export function OrgLayout() {
   const { permissionState, requestPermission, isRegistering } = useFcmRegistration()
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden bg-background">
+    <div className="fixed inset-0 flex flex-col bg-background">
       <NotificationPermissionBanner
         permissionState={permissionState}
         isRegistering={isRegistering}

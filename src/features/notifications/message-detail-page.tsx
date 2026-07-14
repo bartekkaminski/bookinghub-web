@@ -145,7 +145,9 @@ export function MessageDetailPage() {
       </div>
 
       {/* Messages thread — scrollable */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <div className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 space-y-1"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {groupedThread.map((msg) => {
           const isMe = msg.senderId === currentMemberId
           const isSystem = msg.isAutomatic
