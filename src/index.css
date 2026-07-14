@@ -107,7 +107,7 @@ body {
   overscroll-behavior-y: contain;
 }
 
-/* Bottom nav safe area */
+/* Bottom nav safe area — only adds padding on devices with notch/home indicator */
 .bottom-nav-safe {
-  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

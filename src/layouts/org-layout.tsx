@@ -44,7 +44,7 @@ export function OrgLayout() {
         onRequestPermission={requestPermission}
       />
       <ConnectionStatusBar state={connectionState} />
-      <main className={keyboardVisible ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-0 overflow-y-auto pb-20'}>
+      <main className={keyboardVisible ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-0 overflow-y-auto pb-16'}>
         <Outlet />
       </main>
       {!keyboardVisible && <BottomNav orgId={orgId} />}
