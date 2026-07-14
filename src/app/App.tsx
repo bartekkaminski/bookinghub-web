@@ -4,11 +4,13 @@ import { RouterProvider } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
 import { router } from './router'
 import '@/i18n'
+import { PwaUpdateBanner } from '@/shared/components/pwa-update-banner'
 
 function AppInner() {
   return (
     <>
       <RouterProvider router={router} />
+      <PwaUpdateBanner />
       <Toaster
         position="top-center"
         toastOptions={{
