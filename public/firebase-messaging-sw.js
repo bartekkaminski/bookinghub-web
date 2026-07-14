@@ -20,25 +20,17 @@ firebase.initializeApp(self.__FIREBASE_CONFIG__)
 // eslint-disable-next-line no-undef
 const messaging = firebase.messaging()
 
-// ── Powiadomienia w tle / gdy aplikacja jest zamknięta ───────────────────────
-// onBackgroundMessage fires ONLY when the app is not in the foreground.
-// Firebase SDK handles the foreground/background split automatically for data-only messages:
-//   - App in foreground → onMessage() fires in the main thread, this callback does NOT fire
-//   - App in background or closed → this callback fires, onMessage() does NOT fire
-// No need to manually check for open windows — that check breaks PWAs in the background.
-messaging.onBackgroundMessage((payload) => {
-  const title     = payload.data?.title     ?? payload.notification?.title ?? 'BookingHub'
-  const body      = payload.data?.body      ?? payload.notification?.body  ?? ''
-  const actionUrl = payload.data?.actionUrl ?? '/'
+// Aktywuj nowy SW natychmiast po instalacji — bez czekania na zamknięcie wszystkich kart.
+self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()))
 
-  self.registration.showNotification(title, {
-    body,
-    icon:  '/pwa-192x192.png',
-    badge: '/pwa-64x64.png',
-    data:  { actionUrl },
-    tag:   payload.data?.messageId ?? 'bookinghub-notification',
-    renotify: true,
-  })
+// onBackgroundMessage jest WYMAGANY przez Firebase Messaging (bez niego library rzuca błąd).
+// NIE wywołujemy showNotification() — przeglądarka auto-wyświetla powiadomienie z
+// WebpushConfig.Notification ustawionego w backendzie (tytuł, treść, ikona, tag, actionUrl w data).
+// Dodatkowe showNotification() stworzyłoby duplikat.
+// eslint-disable-next-line no-undef
+messaging.onBackgroundMessage((_payload) => {
+  // intentionally empty — backend's WebpushConfig.Notification handles display
 })
 
 // ── Obsługa kliknięcia powiadomienia ────────────────────────────────────────
@@ -47,8 +39,6 @@ self.addEventListener('notificationclick', (event) => {
   const url = event.notification.data?.actionUrl ?? '/'
 
   event.waitUntil(
-    // Jeśli jest otwarta karta z aplikacją — skieruj ją na właściwy URL
-    // W przeciwnym razie otwórz nową kartę
     clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then((windowClients) => {
