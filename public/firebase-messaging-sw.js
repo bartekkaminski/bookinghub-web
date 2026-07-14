@@ -21,18 +21,14 @@ firebase.initializeApp(self.__FIREBASE_CONFIG__)
 const messaging = firebase.messaging()
 
 // ── Powiadomienia w tle / gdy aplikacja jest zamknięta ───────────────────────
-messaging.onBackgroundMessage(async (payload) => {
-  // Sprawdź czy którekolwiek okno aplikacji jest otwarte (nawet spoza scope SW).
-  // Gdy aplikacja jest otwarta — Firebase SDK w głównym wątku wywoła onMessage()
-  // i pokaże toast. Nie dublujemy powiadomienia systemowego.
-  const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true })
-  const appIsOpen = windowClients.some((c) => c.url.startsWith(self.location.origin))
-  if (appIsOpen) return
-
-  // Wszystkie dane są w payload.data (wysyłamy data-only bez pola notification,
-  // bo notification + data powoduje dublowanie: auto-show + onBackgroundMessage).
-  const title     = payload.data?.title    ?? payload.notification?.title ?? 'BookingHub'
-  const body      = payload.data?.body     ?? payload.notification?.body  ?? ''
+// onBackgroundMessage fires ONLY when the app is not in the foreground.
+// Firebase SDK handles the foreground/background split automatically for data-only messages:
+//   - App in foreground → onMessage() fires in the main thread, this callback does NOT fire
+//   - App in background or closed → this callback fires, onMessage() does NOT fire
+// No need to manually check for open windows — that check breaks PWAs in the background.
+messaging.onBackgroundMessage((payload) => {
+  const title     = payload.data?.title     ?? payload.notification?.title ?? 'BookingHub'
+  const body      = payload.data?.body      ?? payload.notification?.body  ?? ''
   const actionUrl = payload.data?.actionUrl ?? '/'
 
   self.registration.showNotification(title, {
