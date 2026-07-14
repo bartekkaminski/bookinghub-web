@@ -69,7 +69,7 @@ export function DashboardPage() {
   return (
     <div className="px-4 pt-10 pb-6 flex flex-col items-center">
       {/* Logo */}
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary shadow-lg">
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary">
         <span className="text-3xl font-black text-white">BH</span>
       </div>
 

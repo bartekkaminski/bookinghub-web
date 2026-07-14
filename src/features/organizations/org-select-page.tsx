@@ -75,7 +75,7 @@ export function OrgSelectPage() {
         <div className="w-full max-w-sm flex flex-col gap-8">
           {/* Logo / Brand */}
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
               <span className="text-2xl font-black text-white">BH</span>
             </div>
             <div>

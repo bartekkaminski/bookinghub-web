@@ -169,7 +169,7 @@ export function CalendarPage() {
               className={cn(
                 'flex flex-1 items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-all',
                 view === 'grid'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
               )}
             >
@@ -181,7 +181,7 @@ export function CalendarPage() {
               className={cn(
                 'flex flex-1 items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-all',
                 view === 'list'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
               )}
             >
