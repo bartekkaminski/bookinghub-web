@@ -17,12 +17,17 @@ const MINUTES_5  = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2
 
 const ITEM_H = 44 // px — wysokość jednego elementu listy
 
-/** Wycentrowany scroll do wybranego elementu */
+/** Wycentrowany scroll do wybranego elementu.
+ *  Kolumna ma padding góra/dół = clientHeight/2 - ITEM_H/2,
+ *  więc środek elementu o indeksie N jest na pozycji:
+ *    padding + N*ITEM_H + ITEM_H/2
+ *  Żeby był w centrum viewportu (clientHeight/2):
+ *    scrollTop = padding + N*ITEM_H + ITEM_H/2 - clientHeight/2
+ *              = N * ITEM_H
+ */
 function scrollToSelected(ref: React.RefObject<HTMLDivElement | null>, index: number) {
   if (!ref.current) return
-  const container = ref.current
-  const targetScroll = index * ITEM_H - (container.clientHeight / 2 - ITEM_H / 2)
-  container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' })
+  ref.current.scrollTo({ top: Math.max(0, index * ITEM_H), behavior: 'smooth' })
 }
 
 export function TimePickerInput({
