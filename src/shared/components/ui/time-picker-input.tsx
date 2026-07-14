@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, forwardRef } from 'react'
 import { Clock } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from './drawer'
 import { Button } from './button'
@@ -148,14 +148,27 @@ interface ColumnProps {
   itemHeight: number
 }
 
-import { forwardRef } from 'react'
-
 const Column = forwardRef<HTMLDivElement, ColumnProps>(
   function Column({ items, selected, onSelect, itemHeight }, ref) {
+    const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget
+      if (scrollTimer.current) clearTimeout(scrollTimer.current)
+      scrollTimer.current = setTimeout(() => {
+        const idx = Math.round(el.scrollTop / itemHeight)
+        const clamped = Math.max(0, Math.min(items.length - 1, idx))
+        if (items[clamped] !== selected) {
+          onSelect(items[clamped])
+        }
+      }, 120)
+    }, [items, selected, onSelect, itemHeight])
+
     return (
       <div
         ref={ref}
-        className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth relative z-20"
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto scrollbar-hide relative z-20"
         style={{ scrollSnapType: 'y mandatory' }}
       >
         {/* Padding góra/dół żeby środkowy element był centralnie */}
