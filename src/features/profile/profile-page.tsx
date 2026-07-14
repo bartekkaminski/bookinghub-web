@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useKindeAuth } from '@kinde-oss/kinde-auth-react'
-import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe, Baby, Hash, Copy, Check, Grid3X3, UsersRound } from 'lucide-react'
+import { Edit, Building2, Loader2, SwitchCamera, Sun, Moon, ChevronRight, Globe, Baby, Hash, Copy, Check, Grid3X3, UsersRound, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useMyPerson, useUpdatePerson } from './use-person'
@@ -28,6 +28,7 @@ import i18n from '@/i18n'
 export function ProfilePage() {
   const { logout } = useKindeAuth()
   const navigate = useNavigate()
+  const router = useRouter()
   const { user, currentOrgId, getCurrentRoles, isAdminOrManager, isTrainer } = useAuthStore()
   const { t } = useTranslation()
   const [editOpen, setEditOpen] = useState(false)
@@ -103,7 +104,14 @@ export function ProfilePage() {
   return (
     <div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-        <PageHeader title={t('profile.title')} />
+        <PageHeader
+          title={t('profile.title')}
+          back={
+            <Button variant="outline" size="sm" onClick={() => router.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          }
+        />
       </div>
 
       <div className="p-4 space-y-4">

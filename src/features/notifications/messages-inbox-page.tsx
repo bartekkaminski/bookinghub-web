@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from '@tanstack/react-router'
-import { MessageSquare, CheckCheck, Bot, Plus, Loader2, X, Search, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { useParams, useNavigate, useRouter } from '@tanstack/react-router'
+import { MessageSquare, CheckCheck, Bot, Plus, Loader2, X, Search, ArrowUpRight, ArrowDownLeft, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useConversations, useUnreadCount, useMarkAllRead, useSendMessage } from './use-messages'
@@ -22,6 +22,7 @@ import type { SendMessageRequest, MemberSummaryResponse } from '@/api/types'
 export function MessagesInboxPage() {
   const { orgId } = useParams({ strict: false }) as { orgId: string }
   const navigate = useNavigate()
+  const router = useRouter()
   const { t } = useTranslation()
 
   const [composeOpen, setComposeOpen] = useState(false)
@@ -41,6 +42,11 @@ export function MessagesInboxPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={t('nav.messages')}
+          back={
+            <Button variant="outline" size="sm" onClick={() => router.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          }
           action={
             <Button size="sm" onClick={() => setComposeOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useParams, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, getDay, isSameDay, isSameMonth, isToday,
@@ -7,7 +7,7 @@ import {
 } from 'date-fns'
 import { pl, enUS } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, Plus, Filter, CalendarDays, Clock, MapPin, X, LayoutList, Grid3X3 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Filter, CalendarDays, Clock, MapPin, X, LayoutList, Grid3X3, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useCalendarEvents, getEventColor, getStatusColor } from './use-events'
 import { Button } from '@/shared/components/ui/button'
@@ -31,6 +31,7 @@ function useDateLocale() {
 export function CalendarPage() {
   const { orgId } = useParams({ strict: false }) as { orgId: string }
   const navigate = useNavigate()
+  const router = useRouter()
   const { isAdminOrManager, isTrainer, isParticipant } = useAuthStore()
   const { t } = useTranslation()
   const locale = useDateLocale()
@@ -137,6 +138,11 @@ export function CalendarPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={useMyCalendar ? t('calendar.myCalendarTitle') : t('calendar.title')}
+          back={
+            <Button variant="outline" size="sm" onClick={() => router.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          }
           action={
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs px-2">

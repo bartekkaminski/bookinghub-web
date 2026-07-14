@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useParams, useNavigate, useRouter } from '@tanstack/react-router'
 import { CalendarRange, ChevronRight, Search, Plus, ArrowLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -18,6 +18,7 @@ import { formatRrule } from './use-event-series'
 export function EventSeriesListPage() {
   const { orgId } = useParams({ strict: false }) as { orgId: string }
   const navigate = useNavigate()
+  const router = useRouter()
   const { isAdminOrManager, isTrainer } = useAuthStore()
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
@@ -39,7 +40,7 @@ export function EventSeriesListPage() {
         <PageHeader
           title={t('eventSeries.title')}
           back={
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/calendar` })}>
+            <Button variant="outline" size="sm" onClick={() => router.history.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           }

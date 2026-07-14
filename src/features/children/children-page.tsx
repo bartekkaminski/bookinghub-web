@@ -1,17 +1,20 @@
 import { useTranslation } from 'react-i18next'
+import { useRouter } from '@tanstack/react-router'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { usePersonChildren } from '@/features/profile/use-person'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Badge } from '@/shared/components/ui/badge'
+import { Button } from '@/shared/components/ui/button'
 import { ListSkeleton } from '@/shared/components/loading-skeletons'
 import { EmptyState } from '@/shared/components/empty-state'
 import { ErrorState } from '@/shared/components/error-state'
 import { PageHeader } from '@/shared/components/page-header'
 import { getInitials, formatDate } from '@/shared/utils/format'
-import { Users2, User } from 'lucide-react'
+import { Users2, User, ArrowLeft } from 'lucide-react'
 
 export function ChildrenPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const { user } = useAuthStore()
   const personId = user?.personId ?? ''
 
@@ -20,7 +23,14 @@ export function ChildrenPage() {
   return (
     <div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-        <PageHeader title={t('children.pageTitle')} />
+        <PageHeader
+          title={t('children.pageTitle')}
+          back={
+            <Button variant="outline" size="sm" onClick={() => router.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          }
+        />
       </div>
 
       {isLoading ? (
