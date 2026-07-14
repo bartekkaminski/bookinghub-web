@@ -87,7 +87,7 @@ export function BottomNav({ orgId }: { orgId: string }) {
       ]
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border bottom-nav-safe">
+    <nav className="flex-shrink-0 z-40 bg-sidebar border-t border-sidebar-border bottom-nav-safe md:border-x md:border-sidebar-border">
       <div className="flex items-center justify-around h-16">
         {baseItems.map((item) => {
           const isActive = !!matchRoute({ to: item.href, fuzzy: true })

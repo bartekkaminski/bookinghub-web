@@ -116,7 +116,7 @@ export function MessageDetailPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex-shrink-0 bg-background/95 backdrop-blur border-b border-border">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur border-b border-border md:border-b-0">
         <PageHeader
           title={message?.subject || t('messages.noSubject')}
           subtitle={participantLine}
@@ -223,7 +223,7 @@ export function MessageDetailPage() {
 
       {/* Reply input — pinned to bottom */}
       {canReply && (
-        <div className="flex-shrink-0 border-t border-border bg-background px-3 py-2 flex items-end gap-2">
+        <div className="flex-shrink-0 border-t border-border bg-background px-3 py-2 flex items-end gap-2 md:border-x">
           <Textarea
             placeholder={t('messages.replyPlaceholder')}
             value={replyText}

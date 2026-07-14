@@ -135,7 +135,7 @@ export function CalendarPage() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur">
         <PageHeader
           title={useMyCalendar ? t('calendar.myCalendarTitle') : t('calendar.title')}
           back={
@@ -159,9 +159,10 @@ export function CalendarPage() {
             </div>
           }
         />
+        <div className="border-b border-border" />
 
         {/* View toggle — centered below title */}
-        <div className="pb-3 px-4">
+        <div className="pt-3 pb-3 px-4">
           <div className="flex w-full rounded-xl border border-border overflow-hidden bg-muted/40 p-0.5 gap-0.5">
             <button
               onClick={() => setView('grid')}
@@ -356,7 +357,8 @@ export function CalendarPage() {
       {canManageEvents && (
         <button
           onClick={() => setCreateOpen(true)}
-          className="fixed bottom-24 right-4 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-30 active:scale-95 transition-transform hover:bg-primary/90"
+          className="fixed bottom-24 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-30 active:scale-95 transition-transform hover:bg-primary/90"
+          style={{ right: 'max(1rem, calc((100vw - 48rem) / 2 + 1rem))' }}
           aria-label={t('calendar.newEvent')}
         >
           <Plus className="h-6 w-6" />

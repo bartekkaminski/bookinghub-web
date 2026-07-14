@@ -194,27 +194,23 @@ export function ProfilePage() {
         {person?.profileCode && (
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground px-1">{t('profile.myCode')}</p>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center gap-3">
-                <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-lg font-mono font-semibold tracking-widest">
-                    {person.profileCode.slice(0, 4)}-{person.profileCode.slice(4)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('profile.myCodeDesc')}</p>
-                </div>
-                <button
-                  onClick={handleCopyCode}
-                  className="flex-shrink-0 p-2 rounded-lg hover:bg-accent transition-colors"
-                  aria-label={t('profile.copyCode')}
-                >
-                  {codeCopied
-                    ? <Check className="h-4 w-4 text-green-500" />
-                    : <Copy className="h-4 w-4 text-muted-foreground" />
-                  }
-                </button>
+            <button
+              onClick={handleCopyCode}
+              className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left active:scale-[0.99]"
+              aria-label={t('profile.copyCode')}
+            >
+              <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-lg font-mono font-semibold tracking-widest">
+                  {person.profileCode.slice(0, 4)}-{person.profileCode.slice(4)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('profile.myCodeDesc')}</p>
               </div>
-            </div>
+              {codeCopied
+                ? <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                : <Copy className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              }
+            </button>
           </div>
         )}
 

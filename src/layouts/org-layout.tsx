@@ -37,17 +37,19 @@ export function OrgLayout() {
   const keyboardVisible = useKeyboardVisible()
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
-      <NotificationPermissionBanner
-        permissionState={permissionState}
-        isRegistering={isRegistering}
-        onRequestPermission={requestPermission}
-      />
-      <ConnectionStatusBar state={connectionState} />
-      <main className={keyboardVisible ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-0 overflow-y-auto pb-16'}>
-        <Outlet />
-      </main>
-      {!keyboardVisible && <BottomNav orgId={orgId} />}
+    <div className="fixed inset-0 flex justify-center bg-background">
+      <div className="relative w-full max-w-3xl flex flex-col bg-background overflow-hidden">
+        <NotificationPermissionBanner
+          permissionState={permissionState}
+          isRegistering={isRegistering}
+          onRequestPermission={requestPermission}
+        />
+        <ConnectionStatusBar state={connectionState} />
+        <main className="flex-1 min-h-0 overflow-y-auto">
+          <Outlet />
+        </main>
+        {!keyboardVisible && <BottomNav orgId={orgId} />}
+      </div>
     </div>
   )
 }

@@ -24,8 +24,8 @@ export function ConnectionStatusBar({ state }: Props) {
     <div
       role="status"
       aria-live="polite"
-      className={cn(
-        'fixed top-0 inset-x-0 z-50 py-1 px-4 text-center text-xs font-medium',
+        className={cn(
+          'flex-shrink-0 z-50 py-1 px-4 text-center text-xs font-medium',
         isReconnecting && 'bg-yellow-500/90 text-yellow-950',
         isDisconnected && 'bg-destructive/90 text-destructive-foreground'
       )}
