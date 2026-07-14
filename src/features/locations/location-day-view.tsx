@@ -11,7 +11,8 @@ import { cn } from '@/shared/utils/cn'
 import type { LocationDayEventResponse } from '@/api/types'
 
 const HOUR_HEIGHT = 64   // px per hour
-const HOURS = Array.from({ length: 25 }, (_, i) => i)  // 0–24 (24 = zamknięcie dnia o północy)
+const DEFAULT_START = 7   // first always-visible hour
+const DEFAULT_END   = 22  // exclusive upper bound for always-visible range (shows through 21:xx)
 
 interface EventColumn {
   event: LocationDayEventResponse
@@ -21,11 +22,30 @@ interface EventColumn {
   height: number
 }
 
+/** Oblicza widoczny zakres godzin na podstawie eventów dnia. */
+function computeHourRange(events: LocationDayEventResponse[]): { startHour: number; endHour: number } {
+  if (events.length === 0) return { startHour: DEFAULT_START, endHour: DEFAULT_END }
+
+  const hasEarly = events.some(e => getHours(parseISO(e.startTime)) < DEFAULT_START)
+  const hasLate  = events.some(e => {
+    const sh = getHours(parseISO(e.startTime))
+    const eh = getHours(parseISO(e.endTime))
+    const em = getMinutes(parseISO(e.endTime))
+    return sh >= DEFAULT_END - 1 || eh > DEFAULT_END - 1 || (eh === DEFAULT_END - 1 && em > 0)
+  })
+
+  return {
+    startHour: hasEarly ? 0 : DEFAULT_START,
+    endHour:   hasLate  ? 24 : DEFAULT_END,
+  }
+}
+
 /**
  * Oblicza pozycje i liczbę kolumn dla nakładających się eventów.
  * Każdy event dostaje minimalną wolną kolumnę.
+ * `startHour` przesuwa pozycje – godzina startHour:00 trafia na top=0.
  */
-function layoutEvents(events: LocationDayEventResponse[]): EventColumn[] {
+function layoutEvents(events: LocationDayEventResponse[], startHour: number): EventColumn[] {
   if (events.length === 0) return []
 
   const sorted = [...events].sort(
@@ -49,12 +69,13 @@ function layoutEvents(events: LocationDayEventResponse[]): EventColumn[] {
   }
 
   const maxCol = columns.length
+  const offsetMin = startHour * 60
 
   return layout.map(({ event, col, startMin, durationMin }) => ({
     event,
     col,
     totalCols: maxCol,
-    top:    (startMin / 60) * HOUR_HEIGHT,
+    top:    ((startMin - offsetMin) / 60) * HOUR_HEIGHT,
     height: Math.max((durationMin / 60) * HOUR_HEIGHT, 28),
   }))
 }
@@ -152,7 +173,12 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
 
   const { data, isLoading } = useLocationDaySchedule(orgId, locationId, dateStr)
 
-  const layouted = data ? layoutEvents(data.events) : []
+  const { startHour, endHour } = data
+    ? computeHourRange(data.events)
+    : { startHour: DEFAULT_START, endHour: DEFAULT_END }
+
+  const hours    = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i)
+  const layouted = data ? layoutEvents(data.events, startHour) : []
 
   // Auto-scroll to current hour on today's date
   useEffect(() => {
@@ -160,12 +186,11 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
     const now = new Date()
     if (format(now, 'yyyy-MM-dd') === dateStr) {
       const currentHour = getHours(now)
-      const scrollTo    = Math.max(0, (currentHour - 1) * HOUR_HEIGHT)
+      const scrollTo    = Math.max(0, (currentHour - startHour - 1) * HOUR_HEIGHT)
       scrollRef.current.scrollTop = scrollTo
-    } else {
-      scrollRef.current.scrollTop = 6 * HOUR_HEIGHT  // Default: 06:00
     }
-  }, [dateStr])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateStr, startHour])
 
   return (
     <div className="flex flex-col border-t border-border mt-4">
@@ -194,14 +219,14 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
             ))}
           </div>
         ) : (
-          <div className="relative" style={{ height: `${24 * HOUR_HEIGHT + 16}px` }}>
+          <div className="relative" style={{ height: `${(endHour - startHour) * HOUR_HEIGHT + 16}px` }}>
 
             {/* Hour rows */}
-            {HOURS.map(hour => (
+            {hours.map(hour => (
               <div
                 key={hour}
                 className="absolute w-full"
-                style={{ top: `${hour * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
+                style={{ top: `${(hour - startHour) * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
               >
                 {/* Full-hour line + label */}
                 <div className="flex items-start w-full">
@@ -213,15 +238,15 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
                   <div className="flex-1 border-t border-border/50" />
                 </div>
 
-                {/* Half-hour dashed line — only for hours 0–23 */}
-                {hour < 24 && (
+                {/* Half-hour dashed line — only for non-closing hours */}
+                {hour < endHour && (
                   <div
                     className="flex items-start w-full absolute"
                     style={{ top: `${HOUR_HEIGHT / 2}px` }}
                   >
                     <div className="w-10 flex-shrink-0 text-right pr-1">
                       <span className="text-[10px] text-muted-foreground/40 leading-none block -translate-y-1/2">
-                        {String(hour).padStart(2, '0')}:30
+                        {String(hour === 24 ? 0 : hour).padStart(2, '0')}:30
                       </span>
                     </div>
                     <div className="flex-1 border-t border-dashed border-border/30" />
