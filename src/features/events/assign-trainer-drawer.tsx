@@ -35,7 +35,7 @@ export function AssignTrainerDrawer({ open, onClose, orgId, eventId, assignedTra
   const handleSubmit = async () => {
     if (!selectedId) return
     try {
-      await assignM.mutateAsync({ trainerMemberId: selectedId })
+      await assignM.mutateAsync({ organizationMemberId: selectedId })
       toast.success(t('events.trainerAssigned'))
       onClose()
     } catch {

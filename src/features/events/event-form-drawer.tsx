@@ -11,7 +11,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/shared/components/ui/drawer'
 import { DrawerSelect } from '@/shared/components/ui/drawer-select'
 import { DatePickerInput } from '@/shared/components/ui/date-picker'
-import { TimePicker } from '@/shared/components/ui/time-picker'
+import { TimePickerInput } from '@/shared/components/ui/time-picker-input'
 import { ColorPicker } from '@/shared/components/ui/color-picker'
 import { useAllGroups } from '@/features/groups/use-groups'
 import { useAllLocations } from '@/features/locations/use-locations'
@@ -257,7 +257,7 @@ export function EventFormDrawer({ open, onClose, orgId, eventId, initialData, in
                   />
                 </div>
                 <div className="w-28">
-                  <TimePicker
+                  <TimePickerInput
                     value={form.startTime}
                     onChange={(v) => set('startTime', v)}
                   />
@@ -277,7 +277,7 @@ export function EventFormDrawer({ open, onClose, orgId, eventId, initialData, in
                   />
                 </div>
                 <div className="w-28">
-                  <TimePicker
+                  <TimePickerInput
                     value={form.endTime}
                     onChange={(v) => set('endTime', v)}
                   />

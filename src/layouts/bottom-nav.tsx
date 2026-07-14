@@ -1,5 +1,5 @@
 import { useNavigate, useMatchRoute } from '@tanstack/react-router'
-import { Home, CalendarDays, MessageSquare, User, ClipboardList, MapPin } from 'lucide-react'
+import { Home, CalendarDays, MessageSquare, User, ClipboardList, MapPin, Clock3 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { usePendingCancellationRequests } from '@/features/enrollments/use-cancellation-requests'
@@ -65,6 +65,12 @@ export function BottomNav({ orgId }: { orgId: string }) {
           href: `/app/org/${orgId}/calendar`,
         },
         {
+          key: 'availability',
+          label: t('nav.availability'),
+          icon: <Clock3 className="h-5 w-5" />,
+          href: `/app/org/${orgId}/availability`,
+        },
+        {
           key: 'messages',
           label: t('nav.messages'),
           icon: <MessageSquare className="h-5 w-5" />,
@@ -78,12 +84,6 @@ export function BottomNav({ orgId }: { orgId: string }) {
           href: `/app/org/${orgId}/pending-requests`,
           badge: pendingCount > 0 ? pendingCount : undefined,
         }] : []),
-        {
-          key: 'profile',
-          label: t('nav.profile'),
-          icon: <User className="h-5 w-5" />,
-          href: `/app/org/${orgId}/profile`,
-        },
       ]
 
   return (

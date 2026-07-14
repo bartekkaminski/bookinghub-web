@@ -235,7 +235,7 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
                       {hour === 24 ? '00:00' : `${String(hour).padStart(2, '0')}:00`}
                     </span>
                   </div>
-                  <div className="flex-1 border-t border-border/50" />
+                  <div className="ml-3 flex-1 border-t border-border/50" />
                 </div>
 
                 {/* Half-hour dashed line — only for non-closing hours */}
@@ -244,12 +244,8 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
                     className="flex items-start w-full absolute"
                     style={{ top: `${HOUR_HEIGHT / 2}px` }}
                   >
-                    <div className="w-10 flex-shrink-0 text-right pr-1">
-                      <span className="text-[10px] text-muted-foreground/40 leading-none block -translate-y-1/2">
-                        {String(hour === 24 ? 0 : hour).padStart(2, '0')}:30
-                      </span>
-                    </div>
-                    <div className="flex-1 border-t border-dashed border-border/30" />
+                    <div className="w-10 flex-shrink-0" />
+                    <div className="ml-3 flex-1 border-t border-dashed border-border/30" />
                   </div>
                 )}
               </div>
@@ -258,7 +254,7 @@ export function LocationDayView({ orgId, locationId, date, onClose }: Props) {
             {/* Event blocks */}
             <div
               className="absolute"
-              style={{ left: '2.5rem', right: '0.5rem', top: 0, bottom: 0 }}
+              style={{ left: 'calc(2.5rem + 0.75rem)', right: '0.5rem', top: 0, bottom: 0 }}
             >
               {layouted.length === 0 && !isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">

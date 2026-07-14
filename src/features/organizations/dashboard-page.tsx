@@ -115,17 +115,24 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {/* Ramka użytkownika */}
+      {/* Ramka użytkownika — klikalny skrót do profilu */}
       {user && (
-        <div className="w-full mt-5 rounded-xl border border-border px-4 py-3 flex flex-col items-center gap-0.5">
-          <p className="text-xs text-muted-foreground">{t('dashboard.loggedInAs')}</p>
-          <p className="text-sm font-medium">{user.fullName ?? user.email}</p>
-          {currentMembership && (
-            <p className="text-xs text-muted-foreground">
-              {currentMembership.roles.map(r => t(`members.role${r}`)).join(', ')}
-            </p>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate({ to: `/app/org/${orgId}/profile` })}
+          className="w-full mt-5 rounded-xl border border-border px-4 py-3 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+        >
+          <div className="flex flex-col flex-1 items-center gap-0.5">
+            <p className="text-xs text-muted-foreground">{t('nav.profile')}</p>
+            <p className="text-sm font-medium">{user.fullName ?? user.email}</p>
+            {currentMembership && (
+              <p className="text-xs text-muted-foreground">
+                {currentMembership.roles.map(r => t(`members.role${r}`)).join(', ')}
+              </p>
+            )}
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        </button>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from '@tanstack/react-router'
+import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -26,6 +26,7 @@ import type { UpdateMemberRequest } from '@/api/types'
 export function MemberDetailPage() {
   const { orgId, memberId } = useParams({ strict: false }) as { orgId: string; memberId: string }
   const router = useRouter()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { isAdmin, isAdminOrManager, user } = useAuthStore()
@@ -284,6 +285,18 @@ export function MemberDetailPage() {
             </button>
           </div>
         )}
+
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground px-1">{t('availability.tab')}</p>
+          <button
+            onClick={() => navigate({ to: `/app/org/${orgId}/members/${memberId}/availability` })}
+            className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+          >
+            <Clock3 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm font-medium flex-1">{t('availability.memberSchedule')}</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          </button>
+        </div>
       </div>
 
       {canEdit && member && (

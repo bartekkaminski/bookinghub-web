@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useGenerateEvents, parseRrule, formatRrule } from './use-event-series'
 import { useAllGroups } from '@/features/groups/use-groups'
 import { useAllLocations } from '@/features/locations/use-locations'
-import { TimePicker } from '@/shared/components/ui/time-picker'
+import { TimePickerInput } from '@/shared/components/ui/time-picker-input'
 import { Button } from '@/shared/components/ui/button'
 import { Label } from '@/shared/components/ui/label'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/shared/components/ui/drawer'
@@ -215,12 +215,12 @@ export function GenerateEventsDrawer({ open, onClose, orgId, series }: GenerateE
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">{t('eventSeries.generateStartTime')}</Label>
-                  <TimePicker value={startTime} onChange={setStartTime} />
+                  <TimePickerInput value={startTime} onChange={setStartTime} />
                   {errors.startTime && <p className="text-xs text-destructive">{errors.startTime}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">{t('eventSeries.generateEndTime')}</Label>
-                  <TimePicker value={endTime} onChange={setEndTime} />
+                  <TimePickerInput value={endTime} onChange={setEndTime} />
                   {errors.endTime && <p className="text-xs text-destructive">{errors.endTime}</p>}
                 </div>
               </div>

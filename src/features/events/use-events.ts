@@ -54,6 +54,7 @@ export function useCreateEvent(orgId: string) {
     mutationFn: (data: CreateEventRequest) => eventsApi.create(orgId, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: ['availability'] })
     },
   })
 }
@@ -65,6 +66,7 @@ export function useUpdateEvent(orgId: string, eventId: string) {
     onSuccess: (data) => {
       qc.setQueryData(eventKeys.detail(orgId, eventId), data)
       qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: ['availability'] })
     },
   })
 }
@@ -76,6 +78,7 @@ export function useCancelEvent(orgId: string, eventId: string) {
     onSuccess: (data) => {
       qc.setQueryData(eventKeys.detail(orgId, eventId), data)
       qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: ['availability'] })
     },
   })
 }
@@ -87,6 +90,7 @@ export function useCompleteEvent(orgId: string, eventId: string) {
     onSuccess: (data) => {
       qc.setQueryData(eventKeys.detail(orgId, eventId), data)
       qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: ['availability'] })
     },
   })
 }

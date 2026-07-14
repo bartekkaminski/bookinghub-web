@@ -1,5 +1,10 @@
 import { api } from './client'
 import type {
+  AvailabilitySlotResponse,
+  AddAvailabilitySlotRequest,
+  UpdateAvailabilitySlotRequest,
+  MemberScheduleResponse,
+  AvailabilityCheckResponse,
   AuthMeResponse,
   UserDetailResponse,
   SetUserActiveRequest,
@@ -507,6 +512,60 @@ export const enrollmentRequestsApi = {
   listPending: (orgId: string) =>
     api.get<EnrollmentRequestSummaryResponse[]>(
       `/api/organizations/${orgId}/enrollment-requests/pending`
+    ),
+}
+
+// ── Availability ──────────────────────────────────────────────────────────────
+
+export const availabilityApi = {
+  /** Pobiera wszystkie sloty dostępności (tygodniowe wzorce) danego członka */
+  getSlots: (orgId: string, memberId: string) =>
+    api.get<AvailabilitySlotResponse[]>(
+      `/api/organizations/${orgId}/members/${memberId}/availability`
+    ),
+
+  /** Dodaje slot dostępności */
+  addSlot: (orgId: string, memberId: string, data: AddAvailabilitySlotRequest) =>
+    api.post<AvailabilitySlotResponse>(
+      `/api/organizations/${orgId}/members/${memberId}/availability`,
+      data
+    ),
+
+  /** Aktualizuje slot dostępności */
+  updateSlot: (
+    orgId: string,
+    memberId: string,
+    slotId: string,
+    data: UpdateAvailabilitySlotRequest,
+  ) =>
+    api.put<AvailabilitySlotResponse>(
+      `/api/organizations/${orgId}/members/${memberId}/availability/${slotId}`,
+      data
+    ),
+
+  /** Usuwa slot dostępności */
+  deleteSlot: (orgId: string, memberId: string, slotId: string) =>
+    api.delete(`/api/organizations/${orgId}/members/${memberId}/availability/${slotId}`),
+
+  /**
+   * Scalony grafik członka (sloty + zajęcia → Available/Busy).
+   * from/to format: "yyyy-MM-dd" (DateOnly). Zakres max 90 dni.
+   */
+  getSchedule: (orgId: string, memberId: string, from: string, to: string) =>
+    api.get<MemberScheduleResponse[]>(
+      `/api/organizations/${orgId}/members/${memberId}/availability/schedule`,
+      { from, to }
+    ),
+
+  /**
+   * Sprawdzenie dostępności jednego lub wielu członków w danym terminie.
+   * from/to format: ISO DateTime string np. "2026-07-14T09:00:00".
+   * Dla pojedynczego memberId działa bez problemów (typowy use-case: EventFormDrawer).
+   */
+  checkAvailability: (orgId: string, memberId: string, from: string, to: string) =>
+    api.get<AvailabilityCheckResponse>(
+      `/api/organizations/${orgId}/availability/check`,
+      { memberIds: memberId, from, to }
     ),
 }
 

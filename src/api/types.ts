@@ -533,24 +533,72 @@ export interface UnreadCountResponse {
 
 // ── Availability ──────────────────────────────────────────────────────────────
 
+/** Nazwy dni tygodnia — serialization C# DayOfWeek z JsonStringEnumConverter */
+export type DayOfWeekName =
+  | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday'
+  | 'Thursday' | 'Friday' | 'Saturday'
+
 export interface AvailabilitySlotResponse {
   id: string
   organizationMemberId: string
-  dayOfWeek: string
-  startTime: string
-  endTime: string
+  dayOfWeek: DayOfWeekName   // "Monday", "Tuesday" itd.
+  timeFrom: string           // "HH:mm:ss" — TimeOnly
+  timeTo: string             // "HH:mm:ss" — TimeOnly
+  validFrom: string | null   // "yyyy-MM-dd" lub null (od zawsze)
+  validTo: string | null     // "yyyy-MM-dd" lub null (bezterminowo)
 }
 
 export interface AddAvailabilitySlotRequest {
-  dayOfWeek: string
-  startTime: string
-  endTime: string
+  dayOfWeek: DayOfWeekName
+  timeFrom: string           // "HH:mm:ss"
+  timeTo: string             // "HH:mm:ss"
+  validFrom?: string | null  // "yyyy-MM-dd" lub null
+  validTo?: string | null    // "yyyy-MM-dd" lub null
 }
 
 export interface UpdateAvailabilitySlotRequest {
-  dayOfWeek: string
-  startTime: string
-  endTime: string
+  dayOfWeek: DayOfWeekName
+  timeFrom: string
+  timeTo: string
+  validFrom?: string | null
+  validTo?: string | null
+}
+
+/** Typ bloku w scalonym grafiku. Unavailable NIE jest zwracane przez API. */
+export type ScheduleBlockType = 'Available' | 'Busy'
+
+export interface ScheduleEventInfo {
+  eventId: string
+  title: string
+  color: string | null
+  eventType: string
+}
+
+export interface ScheduleBlock {
+  timeFrom: string          // "HH:mm:ss"
+  timeTo: string            // "HH:mm:ss"
+  type: ScheduleBlockType
+  /** Id slotu (MemberAvailability) — pozwala otworzyć edycję po kliknięciu bloku */
+  slotId: string
+  event: ScheduleEventInfo | null
+}
+
+export interface MemberScheduleResponse {
+  date: string              // "yyyy-MM-dd"
+  blocks: ScheduleBlock[]
+}
+
+export interface AvailabilityCheckResponse {
+  checkFrom: string         // ISO DateTime
+  checkTo: string           // ISO DateTime
+  members: MemberAvailabilityInfo[]
+}
+
+export interface MemberAvailabilityInfo {
+  memberId: string
+  displayName: string
+  isAvailable: boolean
+  matchingSlots: AvailabilitySlotResponse[]
 }
 
 // ── Event ─────────────────────────────────────────────────────────────────────
@@ -669,7 +717,7 @@ export interface CancelEventRequest {
 }
 
 export interface AssignTrainerToEventRequest {
-  trainerMemberId: string
+  organizationMemberId: string
 }
 
 export interface CalendarRequest {
