@@ -64,11 +64,14 @@ export default defineConfig(({ mode }) => {
           'maskable-icon-512x512.png',
         ],
         manifest: {
+          id:               '/',
           name:             'BookingHub',
           short_name:       'BookingHub',
           description:      'Platforma do zarządzania szkołami tańca i klubami',
+          lang:             'pl',
+          dir:              'ltr',
           theme_color:      '#262626',
-          background_color: '#262626',
+          background_color: '#863bff',
           display:          'standalone',
           orientation:      'portrait',
           scope:            '/',
@@ -82,7 +85,11 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          navigateFallback: null,
+          // Serwuj index.html dla wszystkich nawigacji SPA gdy sieć jest niedostępna.
+          // Dzięki temu działa offline-routing i ConnectionStatusBar wewnątrz aplikacji.
+          navigateFallback: '/index.html',
+          // Wyklucz API i SW Firebase z nawigacyjnego fallbacku
+          navigateFallbackDenylist: [/^\/api\//, /^\/firebase-/],
           // Nie cachuj Service Workera Firebase — musi być zawsze świeży
           globIgnores: ['firebase-messaging-sw.js', 'firebase-sw-config.js'],
           runtimeCaching: [

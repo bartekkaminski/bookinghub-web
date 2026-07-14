@@ -1,0 +1,6 @@
+# SPA fallback — Cloudflare Pages zwraca index.html dla każdej ścieżki,
+# którą nie jest istniejący plik statyczny.
+# Workbox SW przejmuje kontrolę po pierwszej wizycie;
+# ten redirect obsługuje: pierwsze wejście, hard-refresh, deep-linki bez SW.
+
+/*  /index.html  200

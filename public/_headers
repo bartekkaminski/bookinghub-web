@@ -1,0 +1,30 @@
+# ── Service Worker files — NEVER cache, check for updates on every load ────────
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/firebase-messaging-sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/firebase-sw-config.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/workbox-*.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# ── Immutable assets (Vite content-hashes) ─────────────────────────────────────
+/assets/*
+  Cache-Control: max-age=31536000, immutable
+
+# ── PWA icons — long-lived but revalidatable ───────────────────────────────────
+/*.png
+  Cache-Control: max-age=86400, stale-while-revalidate=604800
+
+/favicon.*
+  Cache-Control: max-age=86400, stale-while-revalidate=604800
+
+# ── HTML — never cache (always fetch fresh index.html for SW update detection) ─
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
