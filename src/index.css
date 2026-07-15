@@ -112,6 +112,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Top safe area — pushes content below the iOS status bar / Dynamic Island */
+.top-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 /* ── Desktop: headery bez żadnych ramek ──────────────────────────────────── */
 @media (min-width: 768px) {
   .sticky.z-10 {

@@ -38,7 +38,7 @@ export function OrgLayout() {
 
   return (
     <div className="fixed inset-0 flex justify-center bg-background">
-      <div className="relative w-full max-w-3xl flex flex-col bg-background overflow-hidden">
+      <div className="relative w-full max-w-3xl flex flex-col bg-background overflow-hidden top-safe">
         <NotificationPermissionBanner
           permissionState={permissionState}
           isRegistering={isRegistering}
