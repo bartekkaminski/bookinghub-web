@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3, KeyRound } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3, KeyRound, Hash } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -308,6 +308,16 @@ export function MemberDetailPage() {
           </div>
         )}
 
+        {member?.playerNumber && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('members.playerNumber')}</p>
+            <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+              <Hash className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-semibold">{member.playerNumber}</span>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground px-1">{t('availability.tab')}</p>
           <button
@@ -324,7 +334,8 @@ export function MemberDetailPage() {
       {canEdit && member && (
         <EditMemberDrawer open={editOpen} onClose={() => setEditOpen(false)} onSubmit={handleEdit}
           isLoading={updateMutation.isPending}
-          initialData={{ firstName: member.firstName, lastName: member.lastName, dateOfBirth: member.dateOfBirth, displayName: member.displayName, color: member.color }} />
+          isAdmin={isAdmin()}
+          initialData={{ firstName: member.firstName, lastName: member.lastName, dateOfBirth: member.dateOfBirth, displayName: member.displayName, color: member.color, playerNumber: member.playerNumber }} />
       )}
 
       {canManageRoles && member && (
@@ -484,9 +495,9 @@ export function MemberDetailPage() {
   )
 }
 
-function EditMemberDrawer({ open, onClose, onSubmit, isLoading, initialData }: {
-  open: boolean; onClose: () => void; onSubmit: (data: UpdateMemberRequest) => void; isLoading: boolean
-  initialData: { firstName?: string; lastName?: string; dateOfBirth?: string; displayName: string; color?: string }
+function EditMemberDrawer({ open, onClose, onSubmit, isLoading, initialData, isAdmin }: {
+  open: boolean; onClose: () => void; onSubmit: (data: UpdateMemberRequest) => void; isLoading: boolean; isAdmin: boolean
+  initialData: { firstName?: string; lastName?: string; dateOfBirth?: string; displayName: string; color?: string; playerNumber?: string }
 }) {
   const { t } = useTranslation()
   const [firstName, setFirstName] = useState(initialData.firstName ?? '')
@@ -494,18 +505,27 @@ function EditMemberDrawer({ open, onClose, onSubmit, isLoading, initialData }: {
   const [dateOfBirth, setDateOfBirth] = useState(initialData.dateOfBirth ?? '')
   const [displayName, setDisplayName] = useState(initialData.displayName)
   const [color, setColor] = useState(initialData.color ?? '#6d28d9')
+  const [playerNumber, setPlayerNumber] = useState(initialData.playerNumber ?? '')
 
   useEffect(() => {
     if (open) {
       setFirstName(initialData.firstName ?? ''); setLastName(initialData.lastName ?? '')
       setDateOfBirth(initialData.dateOfBirth ?? ''); setDisplayName(initialData.displayName)
       setColor(initialData.color ?? '#6d28d9')
+      setPlayerNumber(initialData.playerNumber ?? '')
     }
   }, [open])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({ firstName: firstName || undefined, lastName: lastName || undefined, dateOfBirth: dateOfBirth || undefined, displayName: displayName || undefined, color })
+    onSubmit({
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      dateOfBirth: dateOfBirth || undefined,
+      displayName: displayName || undefined,
+      color,
+      playerNumber: isAdmin ? (playerNumber.trim() || undefined) : undefined,
+    })
   }
 
   return (
@@ -529,6 +549,17 @@ function EditMemberDrawer({ open, onClose, onSubmit, isLoading, initialData }: {
             <Label>{t('common.dateOfBirth')}</Label>
             <DatePickerInput value={dateOfBirth} onChange={setDateOfBirth} placeholder={t('common.birthDatePlaceholder')} />
           </div>
+          {isAdmin && (
+            <div className="space-y-2">
+              <Label>{t('members.playerNumber')} <span className="text-muted-foreground text-xs">{t('common.optional')}</span></Label>
+              <Input
+                value={playerNumber}
+                onChange={(e) => setPlayerNumber(e.target.value)}
+                placeholder={t('members.playerNumberPlaceholder')}
+                maxLength={50}
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label>{t('common.color')}</Label>
             <div className="flex flex-wrap gap-2">

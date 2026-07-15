@@ -43,7 +43,7 @@ export function ProfilePage() {
   const canSeeOrgLists = isAdminOrManager() || isTrainer()
   const isParticipantOnly = !canSeeOrgLists
   const currentMembership = user?.memberships.find(m => m.organizationId === currentOrgId)
-  const myMemberId = isParticipantOnly ? (currentMembership?.memberId ?? '') : ''
+  const myMemberId = currentMembership?.memberId ?? ''
 
   const { data: person, isLoading, isError, refetch } = useMyPerson()
   const updateMutation = useUpdatePerson(person?.id ?? '')
@@ -211,6 +211,17 @@ export function ProfilePage() {
                 : <Copy className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               }
             </button>
+          </div>
+        )}
+
+        {/* Player number — read-only, assigned by admin */}
+        {myMember?.playerNumber && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('profile.playerNumber')}</p>
+            <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+              <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span className="text-lg font-semibold">{myMember.playerNumber}</span>
+            </div>
           </div>
         )}
 

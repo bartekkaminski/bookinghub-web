@@ -419,6 +419,7 @@ const pl = {
     myCode: 'Twój kod do organizacji',
     myCodeDesc: 'Podaj ten kod adminowi, aby mógł dodać Cię do nowej organizacji',
     copyCode: 'Kopiuj kod',
+    playerNumber: 'Numer zawodnika',
     myGroups: 'Moje grupy',
     myTeams: 'Moje zespoły',
     noGroupsAssigned: 'Brak przypisanych grup',
@@ -529,6 +530,8 @@ const pl = {
     attachAccountDescription: 'Podaj adres e-mail tej osoby. Zostanie wysłany link aktywacyjny umożliwiający ustawienie hasła i zalogowanie się.',
     attachAccountSubmit: 'Utwórz konto',
     attachAccountSuccess: 'Konto logowania zostało utworzone i link aktywacyjny został wysłany',
+    playerNumber: 'Numer zawodnika',
+    playerNumberPlaceholder: 'np. 10, 1A...',
   },
   children: {
     pageTitle: 'Moje dzieci',
@@ -1174,6 +1177,7 @@ const en: typeof pl = {
     myCode: 'Your organization code',
     myCodeDesc: 'Share this code with an admin to be added to a new organization',
     copyCode: 'Copy code',
+    playerNumber: 'Player number',
     myGroups: 'My groups',
     myTeams: 'My teams',
     noGroupsAssigned: 'No groups assigned',
@@ -1284,6 +1288,8 @@ const en: typeof pl = {
     attachAccountDescription: 'Enter this person\'s email address. An activation link will be sent allowing them to set a password and log in.',
     attachAccountSubmit: 'Create account',
     attachAccountSuccess: 'Login account created and activation link sent',
+    playerNumber: 'Player number',
+    playerNumberPlaceholder: 'e.g. 10, 1A...',
   },
   children: {
     pageTitle: 'My children',

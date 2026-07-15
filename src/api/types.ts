@@ -179,6 +179,7 @@ export interface MemberDetailResponse {
   photoUrl?: string
   color?: string
   priority?: number
+  playerNumber?: string
   isActive: boolean
   roles: string[]
   groups: MemberGroupInfo[]
@@ -228,6 +229,7 @@ export interface CreateMemberWithAccountRequest {
   color?: string
   priority?: number
   dateOfBirth?: string
+  playerNumber?: string
 }
 
 export interface CreateMemberProfileRequest {
@@ -238,6 +240,7 @@ export interface CreateMemberProfileRequest {
   displayName?: string
   color?: string
   priority?: number
+  playerNumber?: string
 }
 
 export interface AttachAccountRequest {
@@ -252,6 +255,7 @@ export interface UpdateMemberRequest {
   photoUrl?: string
   color?: string
   priority?: number
+  playerNumber?: string
 }
 
 export interface AddMemberRoleRequest {

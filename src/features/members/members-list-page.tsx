@@ -248,6 +248,7 @@ function CreateMemberDrawer({
   const [displayName, setDisplayName] = useState('')
   const [color, setColor] = useState('#6d28d9')
   const [roles, setRoles] = useState<string[]>(['Participant'])
+  const [playerNumber, setPlayerNumber] = useState('')
 
   // Existing account tab
   const [profileCode, setProfileCode] = useState('')
@@ -284,6 +285,7 @@ function CreateMemberDrawer({
   const reset = () => {
     setFirstName(''); setLastName(''); setEmail(''); setDateOfBirth('')
     setDisplayName(''); setColor('#6d28d9'); setRoles(['Participant'])
+    setPlayerNumber('')
     setProfileCode(''); setLookupResult(null); setLookupError(null)
     setExistingRoles(['Participant']); setExistingColor('#6d28d9')
   }
@@ -300,9 +302,9 @@ function CreateMemberDrawer({
     if (!firstName || !lastName) return
     if (mode === 'account') {
       if (!email) return
-      onSubmitWithAccount({ firstName, lastName, email, roles, dateOfBirth: dateOfBirth || undefined, displayName: displayName || undefined, color })
+      onSubmitWithAccount({ firstName, lastName, email, roles, dateOfBirth: dateOfBirth || undefined, displayName: displayName || undefined, color, playerNumber: playerNumber.trim() || undefined })
     } else {
-      onSubmitProfile({ firstName, lastName, roles, dateOfBirth: dateOfBirth || undefined, displayName: displayName || undefined, color })
+      onSubmitProfile({ firstName, lastName, roles, dateOfBirth: dateOfBirth || undefined, displayName: displayName || undefined, color, playerNumber: playerNumber.trim() || undefined })
     }
   }
 
@@ -419,6 +421,15 @@ function CreateMemberDrawer({
             <div className="space-y-2">
               <Label>{t('common.dateOfBirth')}</Label>
               <DatePickerInput value={dateOfBirth} onChange={setDateOfBirth} placeholder={t('common.birthDatePlaceholder')} />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('members.playerNumber')} <span className="text-muted-foreground text-xs">{t('common.optional')}</span></Label>
+              <Input
+                value={playerNumber}
+                onChange={(e) => setPlayerNumber(e.target.value)}
+                placeholder={t('members.playerNumberPlaceholder')}
+                maxLength={50}
+              />
             </div>
             <div className="space-y-2">
               <Label>{t('common.color')}</Label>
