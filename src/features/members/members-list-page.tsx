@@ -158,6 +158,11 @@ export function MembersListPage() {
                         {getRoleLabel(role)}
                       </span>
                     ))}
+                    {isAdmin() && !member.hasAccount && (
+                      <Badge variant="outline" className="text-xs flex-shrink-0 text-muted-foreground border-muted-foreground/30">
+                        {t('members.noLoginBadge')}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />

@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { membersApi } from '@/api/endpoints'
+import { personKeys } from '@/features/profile/use-person'
 import type {
   AddMemberRequest,
   CreateMemberWithAccountRequest,
   CreateMemberProfileRequest,
+  AttachAccountRequest,
   UpdateMemberRequest,
   SetMemberActiveRequest,
   AddMemberRoleRequest,
@@ -86,6 +88,20 @@ export function useCreateMemberProfile(orgId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: memberKeys.lists(orgId) })
       qc.invalidateQueries({ queryKey: memberKeys.listAll(orgId) })
+    },
+  })
+}
+
+export function useAttachAccount(orgId: string, memberId: string, personId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: AttachAccountRequest) => membersApi.attachAccount(orgId, memberId, data),
+    onSuccess: (data) => {
+      qc.setQueryData(memberKeys.detail(orgId, memberId), data)
+      qc.invalidateQueries({ queryKey: memberKeys.lists(orgId) })
+      qc.invalidateQueries({ queryKey: memberKeys.listAll(orgId) })
+      // Odśwież personDetail żeby hasAccount stało się true i przycisk zniknął
+      qc.invalidateQueries({ queryKey: personKeys.detail(personId) })
     },
   })
 }

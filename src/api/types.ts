@@ -165,6 +165,7 @@ export interface MemberSummaryResponse {
   priority?: number
   isActive: boolean
   roles: string[]
+  hasAccount: boolean
 }
 
 export interface MemberDetailResponse {
@@ -237,6 +238,10 @@ export interface CreateMemberProfileRequest {
   displayName?: string
   color?: string
   priority?: number
+}
+
+export interface AttachAccountRequest {
+  email: string
 }
 
 export interface UpdateMemberRequest {

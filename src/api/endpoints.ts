@@ -25,6 +25,7 @@ import type {
   AddMemberRequest,
   CreateMemberWithAccountRequest,
   CreateMemberProfileRequest,
+  AttachAccountRequest,
   UpdateMemberRequest,
   AddMemberRoleRequest,
   SetMemberActiveRequest,
@@ -200,6 +201,12 @@ export const membersApi = {
 
   createProfile: (organizationId: string, data: CreateMemberProfileRequest) =>
     api.post<MemberDetailResponse>(`/api/organizations/${organizationId}/members/create-profile`, data),
+
+  attachAccount: (organizationId: string, memberId: string, data: AttachAccountRequest) =>
+    api.post<MemberDetailResponse>(
+      `/api/organizations/${organizationId}/members/${memberId}/attach-account`,
+      data
+    ),
 
   update: (organizationId: string, memberId: string, data: UpdateMemberRequest) =>
     api.put<MemberDetailResponse>(`/api/organizations/${organizationId}/members/${memberId}`, data),

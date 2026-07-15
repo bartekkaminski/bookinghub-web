@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3 } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, useAllMembers, memberKeys } from './use-members'
+import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, useAllMembers, useAttachAccount, memberKeys } from './use-members'
 import { useTrainers } from './use-members'
 import { usePersonChildren, useAddChild, useRemoveChild, usePerson, useRemoveParentLink, useAddParentChildLink } from '@/features/profile/use-person'
 import { Button } from '@/shared/components/ui/button'
@@ -39,6 +39,8 @@ export function MemberDetailPage() {
   const [removeChildTarget, setRemoveChildTarget] = useState<{ id: string; name: string } | null>(null)
   const [removeParentTarget, setRemoveParentTarget] = useState<{ id: string; name: string } | null>(null)
   const [removeTrainerTarget, setRemoveTrainerTarget] = useState<{ id: string; name: string } | null>(null)
+  const [attachAccountOpen, setAttachAccountOpen] = useState(false)
+  const [attachEmail, setAttachEmail] = useState('')
 
   const { data: member, isLoading, isError, refetch } = useMember(orgId, memberId)
   const updateMutation = useUpdateMember(orgId, memberId)
@@ -47,6 +49,7 @@ export function MemberDetailPage() {
   const removeRoleMutation = useRemoveMemberRole(orgId, memberId)
   const assignTrainerM = useAssignTrainer(orgId)
   const removeTrainerM = useRemoveTrainerFromMember(orgId)
+  const attachAccountM = useAttachAccount(orgId, memberId, member?.personId ?? '')
 
   const { data: children } = usePersonChildren(member?.personId ?? '')
   const { data: personDetail } = usePerson(member?.personId ?? '')
@@ -114,6 +117,11 @@ export function MemberDetailPage() {
             <h2 className="text-lg font-semibold">{member?.displayName}</h2>
             {(member?.firstName || member?.lastName) && (
               <p className="text-sm text-muted-foreground">{[member.firstName, member.lastName].filter(Boolean).join(' ')}</p>
+            )}
+            {isAdmin() && personDetail && (
+              personDetail.email
+                ? <p className="text-xs text-muted-foreground mt-0.5">{personDetail.email}</p>
+                : <p className="text-xs text-muted-foreground/60 mt-0.5 italic">{t('members.noEmail')}</p>
             )}
           </div>
           {!member?.isActive && (
@@ -286,6 +294,20 @@ export function MemberDetailPage() {
           </div>
         )}
 
+        {isAdmin() && personDetail && !personDetail.hasAccount && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('members.loginAccessSection')}</p>
+            <button
+              onClick={() => setAttachAccountOpen(true)}
+              className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+            >
+              <KeyRound className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-medium flex-1">{t('members.attachAccount')}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </button>
+          </div>
+        )}
+
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground px-1">{t('availability.tab')}</p>
           <button
@@ -410,6 +432,54 @@ export function MemberDetailPage() {
           }
         }}
       />
+
+      <Drawer open={attachAccountOpen} onOpenChange={(v) => { if (!v) { setAttachAccountOpen(false); setAttachEmail('') } }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{t('members.attachAccountTitle')}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-2 space-y-4">
+            <p className="text-sm text-muted-foreground">{t('members.attachAccountDescription')}</p>
+            <div className="space-y-2">
+              <Label htmlFor="attach-email">{t('common.email')}</Label>
+              <Input
+                id="attach-email"
+                type="email"
+                value={attachEmail}
+                onChange={(e) => setAttachEmail(e.target.value)}
+                placeholder="jan@example.com"
+                autoComplete="email"
+              />
+            </div>
+          </div>
+          <DrawerFooter>
+            <Button
+              disabled={!attachEmail.trim() || attachAccountM.isPending}
+              onClick={() =>
+                attachAccountM.mutate(
+                  { email: attachEmail.trim() },
+                  {
+                    onSuccess: () => {
+                      toast.success(t('members.attachAccountSuccess'))
+                      setAttachAccountOpen(false)
+                      setAttachEmail('')
+                    },
+                    onError: (err) => toast.error(err.message),
+                  }
+                )
+              }
+            >
+              {attachAccountM.isPending
+                ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                : <KeyRound className="h-4 w-4 mr-2" />}
+              {t('members.attachAccountSubmit')}
+            </Button>
+            <Button variant="outline" onClick={() => { setAttachAccountOpen(false); setAttachEmail('') }}>
+              {t('common.cancel')}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }
