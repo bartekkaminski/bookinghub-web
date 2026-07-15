@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import {
@@ -24,6 +24,7 @@ interface EventSeriesFormDrawerProps {
   orgId: string
   seriesId?: string
   initialData?: EventSeriesDetailResponse
+  onDelete?: () => void
 }
 
 interface FormValues {
@@ -68,7 +69,7 @@ function buildInitialValues(initialData?: EventSeriesDetailResponse): FormValues
 }
 
 export function EventSeriesFormDrawer({
-  open, onClose, orgId, seriesId, initialData,
+  open, onClose, orgId, seriesId, initialData, onDelete,
 }: EventSeriesFormDrawerProps) {
   const { t } = useTranslation()
   const isEdit = !!seriesId && !!initialData
@@ -292,6 +293,11 @@ export function EventSeriesFormDrawer({
           <Button variant="outline" onClick={onClose} className="w-full">
             {t('common.cancel')}
           </Button>
+          {onDelete && (
+            <Button variant="ghost" onClick={onDelete} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="h-4 w-4 mr-2" />{t('eventSeries.deleteBtn')}
+            </Button>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

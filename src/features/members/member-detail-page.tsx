@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3, KeyRound, Hash } from 'lucide-react'
+import { ArrowLeft, Edit, UserCheck, Loader2, Shield, Grid3X3, UsersRound, ChevronRight, UserCog, Plus, Baby, Users2, User, Clock3, KeyRound, Hash, Medal } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, useAllMembers, useAttachAccount, memberKeys } from './use-members'
+import { AssignRankDrawer } from '@/features/ranks/assign-rank-drawer'
 import { useTrainers } from './use-members'
 import { usePersonChildren, useAddChild, useRemoveChild, usePerson, useRemoveParentLink, useAddParentChildLink } from '@/features/profile/use-person'
 import { Button } from '@/shared/components/ui/button'
@@ -41,6 +42,7 @@ export function MemberDetailPage() {
   const [removeTrainerTarget, setRemoveTrainerTarget] = useState<{ id: string; name: string } | null>(null)
   const [attachAccountOpen, setAttachAccountOpen] = useState(false)
   const [attachEmail, setAttachEmail] = useState('')
+  const [rankDrawerOpen, setRankDrawerOpen] = useState(false)
 
   const { data: member, isLoading, isError, refetch } = useMember(orgId, memberId)
   const updateMutation = useUpdateMember(orgId, memberId)
@@ -318,6 +320,30 @@ export function MemberDetailPage() {
           </div>
         )}
 
+        {/* Rank section — visible only for admin */}
+        {isAdmin() && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('members.rankSection')}</p>
+            <button
+              onClick={() => setRankDrawerOpen(true)}
+              className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+            >
+              {member?.rank ? (
+                <div
+                  className="h-4 w-4 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: member.rank.color ?? '#475569' }}
+                />
+              ) : (
+                <Medal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              )}
+              <span className="text-sm font-medium flex-1">
+                {member?.rank?.name ?? t('members.noRank')}
+              </span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </button>
+          </div>
+        )}
+
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground px-1">{t('availability.tab')}</p>
           <button
@@ -336,6 +362,16 @@ export function MemberDetailPage() {
           isLoading={updateMutation.isPending}
           isAdmin={isAdmin()}
           initialData={{ firstName: member.firstName, lastName: member.lastName, dateOfBirth: member.dateOfBirth, displayName: member.displayName, color: member.color, playerNumber: member.playerNumber }} />
+      )}
+
+      {isAdmin() && member && (
+        <AssignRankDrawer
+          open={rankDrawerOpen}
+          onClose={() => setRankDrawerOpen(false)}
+          orgId={orgId}
+          memberId={memberId}
+          currentRankId={member.rank?.id}
+        />
       )}
 
       {canManageRoles && member && (

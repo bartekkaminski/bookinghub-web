@@ -60,7 +60,11 @@ export function useDeleteLocation(orgId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (locationId: string) => locationsApi.delete(orgId, locationId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: locationKeys.lists(orgId) }),
+    onSuccess: (_data, locationId) => {
+      qc.removeQueries({ queryKey: locationKeys.detail(orgId, locationId) })
+      // Unieważnia też harmonogram (schedule), bo locationKeys.all obejmuje cały subtree
+      qc.invalidateQueries({ queryKey: locationKeys.all(orgId) })
+    },
   })
 }
 

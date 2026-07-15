@@ -155,6 +155,49 @@ export interface OrganizationCreationLimitsResponse {
 
 // ── Member ────────────────────────────────────────────────────────────────────
 
+// ── Rank ─────────────────────────────────────────────────────────────────────
+
+export interface RankSummaryResponse {
+  id: string
+  organizationId: string
+  name: string
+  /** Kolor HEX rangi, np. "#F59E0B". Undefined = brak koloru. */
+  color?: string
+  memberCount: number
+}
+
+export interface RankDetailResponse {
+  id: string
+  organizationId: string
+  name: string
+  color?: string
+  memberCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateRankRequest {
+  name: string
+  color?: string
+}
+
+export interface UpdateRankRequest {
+  name: string
+  color?: string
+}
+
+export interface SetMemberRankRequest {
+  rankId: string | null
+}
+
+export interface MemberRankInfo {
+  id: string
+  name: string
+  color?: string
+}
+
+// ── Member ────────────────────────────────────────────────────────────────────
+
 export interface MemberSummaryResponse {
   id: string
   personId: string
@@ -166,6 +209,7 @@ export interface MemberSummaryResponse {
   isActive: boolean
   roles: string[]
   hasAccount: boolean
+  rank?: MemberRankInfo
 }
 
 export interface MemberDetailResponse {
@@ -185,6 +229,7 @@ export interface MemberDetailResponse {
   groups: MemberGroupInfo[]
   teams: MemberTeamInfo[]
   assignedTrainers: MemberTrainerInfo[]
+  rank?: MemberRankInfo
   createdAt: string
   updatedAt: string
 }

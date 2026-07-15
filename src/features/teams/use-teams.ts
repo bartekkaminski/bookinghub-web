@@ -61,7 +61,10 @@ export function useDeleteTeam(orgId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (teamId: string) => teamsApi.delete(orgId, teamId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: teamKeys.lists(orgId) }),
+    onSuccess: (_data, teamId) => {
+      qc.removeQueries({ queryKey: teamKeys.detail(orgId, teamId) })
+      qc.invalidateQueries({ queryKey: teamKeys.all(orgId) })
+    },
   })
 }
 

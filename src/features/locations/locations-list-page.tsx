@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { Plus, MapPin, ChevronRight, Search, Loader2, ArrowLeft } from 'lucide-react'
+import { Plus, MapPin, ChevronRight, Search, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -93,9 +93,10 @@ export function LocationsListPage() {
   )
 }
 
-export function LocationFormDrawer({ open, onClose, onSubmit, isLoading, title, initialData }: {
+export function LocationFormDrawer({ open, onClose, onSubmit, isLoading, title, initialData, onDelete }: {
   open: boolean; onClose: () => void; onSubmit: (data: CreateLocationRequest) => void; isLoading: boolean
   title: string; initialData?: { name: string; address?: string; description?: string }
+  onDelete?: () => void
 }) {
   const { t } = useTranslation()
   const [name, setName] = useState(initialData?.name ?? '')
@@ -132,6 +133,11 @@ export function LocationFormDrawer({ open, onClose, onSubmit, isLoading, title, 
             {initialData ? t('common.save') : t('locations.addBtn')}
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">{t('common.cancel')}</Button>
+          {onDelete && (
+            <Button variant="ghost" onClick={onDelete} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="h-4 w-4 mr-2" />{t('locations.deleteLocation')}
+            </Button>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

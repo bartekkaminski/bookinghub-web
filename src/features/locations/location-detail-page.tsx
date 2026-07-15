@@ -1,15 +1,16 @@
-import { useRef, useState } from 'react'
-import { useParams, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, Edit, MapPin } from 'lucide-react'
+import { useRef, useState, type ReactNode } from 'react'
+import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
+import { ArrowLeft, Edit, MapPin, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useLocation, useUpdateLocation } from './use-locations'
+import { useLocation, useUpdateLocation, useDeleteLocation } from './use-locations'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { DetailSkeleton } from '@/shared/components/loading-skeletons'
 import { ErrorState } from '@/shared/components/error-state'
 import { PageHeader } from '@/shared/components/page-header'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/shared/components/ui/drawer'
 import { LocationFormDrawer } from './locations-list-page'
 import { LocationMonthCalendar } from './location-month-calendar'
 import { LocationDayView } from './location-day-view'
@@ -18,15 +19,18 @@ import type { UpdateLocationRequest } from '@/api/types'
 export function LocationDetailPage() {
   const { orgId, locationId } = useParams({ strict: false }) as { orgId: string; locationId: string }
   const router = useRouter()
+  const navigate = useNavigate()
   const { isAdminOrManager } = useAuthStore()
   const { t } = useTranslation()
 
   const [editOpen, setEditOpen]         = useState(false)
+  const [deleteOpen, setDeleteOpen]     = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date())
   const scheduleRef                     = useRef<HTMLDivElement>(null)
 
   const { data: location, isLoading, isError, refetch } = useLocation(orgId, locationId)
   const updateMutation = useUpdateLocation(orgId, locationId)
+  const deleteMutation = useDeleteLocation(orgId)
 
   const handleUpdate = async (data: { name: string; address?: string; description?: string }) => {
     try {
@@ -35,6 +39,16 @@ export function LocationDetailPage() {
       toast.success(t('locations.updated'))
     } catch {
       toast.error(t('locations.updateFailed'))
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(locationId)
+      toast.success(t('locations.deleted'))
+      navigate({ to: `/app/org/${orgId}/locations`, replace: true })
+    } catch {
+      toast.error(t('locations.deleteFailed'))
     }
   }
 
@@ -128,8 +142,52 @@ export function LocationDetailPage() {
             address:     location.address,
             description: location.description,
           }}
+          onDelete={() => { setEditOpen(false); setDeleteOpen(true) }}
         />
       )}
+
+      {/* Delete confirm drawer */}
+      <DeleteConfirmDrawer
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={deleteMutation.isPending}
+        title={t('locations.deleteConfirmTitle')}
+        description={t('locations.deleteConfirmDesc', { name: location?.name ?? '' })}
+        icon={<MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+        itemName={location?.name ?? ''}
+        deleteLabel={t('locations.deleteBtn')}
+      />
     </div>
+  )
+}
+
+function DeleteConfirmDrawer({
+  open, onClose, onConfirm, isLoading, title, description, icon, itemName, deleteLabel,
+}: {
+  open: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean
+  title: string; description: string; icon: ReactNode; itemName: string; deleteLabel: string
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader><DrawerTitle>{title}</DrawerTitle></DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            {icon}
+            <span className="text-sm font-medium">{itemName}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <DrawerFooter>
+          <Button variant="destructive" className="w-full" disabled={isLoading} onClick={onConfirm}>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {deleteLabel}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>{t('common.cancel')}</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }

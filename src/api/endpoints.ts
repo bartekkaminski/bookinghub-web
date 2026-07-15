@@ -30,6 +30,11 @@ import type {
   AddMemberRoleRequest,
   SetMemberActiveRequest,
   AssignTrainerToParticipantRequest,
+  RankSummaryResponse,
+  RankDetailResponse,
+  CreateRankRequest,
+  UpdateRankRequest,
+  SetMemberRankRequest,
   GroupSummaryResponse,
   GroupDetailResponse,
   CreateGroupRequest,
@@ -226,8 +231,36 @@ export const membersApi = {
   removeTrainer: (organizationId: string, memberId: string, trainerId: string) =>
     api.delete(`/api/organizations/${organizationId}/members/${memberId}/trainers/${trainerId}`),
 
+  setRank: (organizationId: string, memberId: string, data: SetMemberRankRequest) =>
+    api.put<MemberDetailResponse>(`/api/organizations/${organizationId}/members/${memberId}/rank`, data),
+
   delete: (organizationId: string, memberId: string) =>
     api.delete(`/api/organizations/${organizationId}/members/${memberId}`),
+}
+
+// ── Ranks ─────────────────────────────────────────────────────────────────────
+
+export const ranksApi = {
+  list: (organizationId: string) =>
+    api.get<RankSummaryResponse[]>(`/api/organizations/${organizationId}/ranks`),
+
+  getById: (organizationId: string, rankId: string) =>
+    api.get<RankDetailResponse>(`/api/organizations/${organizationId}/ranks/${rankId}`),
+
+  getMembers: (organizationId: string, rankId: string, page: number, pageSize: number) =>
+    api.get<PagedResult<MemberSummaryResponse>>(
+      `/api/organizations/${organizationId}/ranks/${rankId}/members`,
+      { page, pageSize } as Record<string, number>
+    ),
+
+  create: (organizationId: string, data: CreateRankRequest) =>
+    api.post<RankDetailResponse>(`/api/organizations/${organizationId}/ranks`, data),
+
+  update: (organizationId: string, rankId: string, data: UpdateRankRequest) =>
+    api.put<RankDetailResponse>(`/api/organizations/${organizationId}/ranks/${rankId}`, data),
+
+  delete: (organizationId: string, rankId: string) =>
+    api.delete(`/api/organizations/${organizationId}/ranks/${rankId}`),
 }
 
 // ── Groups ────────────────────────────────────────────────────────────────────

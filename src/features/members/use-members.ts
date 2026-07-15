@@ -11,6 +11,7 @@ import type {
   AddMemberRoleRequest,
   AssignTrainerToParticipantRequest,
   OrganizationMemberFilterParams,
+  SetMemberRankRequest,
 } from '@/api/types'
 
 export function useFindMemberByCode(orgId: string) {
@@ -179,6 +180,21 @@ export function useDeleteMember(orgId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: memberKeys.lists(orgId) })
       qc.invalidateQueries({ queryKey: memberKeys.listAll(orgId) })
+    },
+  })
+}
+
+export function useSetMemberRank(orgId: string, memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: SetMemberRankRequest) => membersApi.setRank(orgId, memberId, data),
+    onSuccess: (data) => {
+      qc.setQueryData(memberKeys.detail(orgId, memberId), data)
+      qc.invalidateQueries({ queryKey: memberKeys.lists(orgId) })
+      qc.invalidateQueries({ queryKey: memberKeys.listAll(orgId) })
+      // Unieważnij wszystkie dane rang w tej organizacji:
+      // listę rang (zmiana MemberCount), szczegóły rangi i listy członków rang
+      qc.invalidateQueries({ queryKey: ['ranks', orgId] })
     },
   })
 }

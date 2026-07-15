@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, useRouter } from '@tanstack/react-router'
 import { format, parseISO } from 'date-fns'
 import { pl, enUS } from 'date-fns/locale'
-import { ArrowLeft, Edit, Trash2, CalendarDays, MapPin, Loader2, Clock, ChevronRight, CalendarRange } from 'lucide-react'
+import { ArrowLeft, Edit, CalendarDays, MapPin, Loader2, Clock, ChevronRight, CalendarRange } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -183,20 +183,6 @@ export function EventSeriesDetailPage() {
         </div>
       )}
 
-      {/* Delete action */}
-      {isAdmin() && (
-        <div className="px-4 mt-3">
-          <Button
-            variant="outline"
-            className="w-full gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="h-4 w-4" />
-            {t('eventSeries.deleteBtn')}
-          </Button>
-        </div>
-      )}
-
       {/* Edit drawer */}
       {isAdminOrManager() && (
         <EventSeriesFormDrawer
@@ -205,6 +191,7 @@ export function EventSeriesDetailPage() {
           orgId={orgId}
           seriesId={seriesId}
           initialData={series}
+          onDelete={isAdmin() ? () => { setEditOpen(false); setDeleteOpen(true) } : undefined}
         />
       )}
 

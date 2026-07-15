@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useParams, useNavigate, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, Edit, Plus, Users, UsersRound, Loader2, ChevronRight, Trash2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Edit, Plus, Users, UsersRound, Loader2, ChevronRight, Trash2, ExternalLink, Grid3X3 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useGroup, useUpdateGroup, useAddMemberToGroup, useRemoveMemberFromGroup, useAddTeamToGroup, useRemoveTeamFromGroup } from './use-groups'
+import { useGroup, useUpdateGroup, useDeleteGroup, useAddMemberToGroup, useRemoveMemberFromGroup, useAddTeamToGroup, useRemoveTeamFromGroup } from './use-groups'
 import { useAllMembers } from '@/features/members/use-members'
 import { useAllTeams } from '@/features/teams/use-teams'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
@@ -25,9 +25,11 @@ import { DrawerSearchSelect } from '@/shared/components/ui/drawer-select'
 export function GroupDetailPage() {
   const { orgId, groupId } = useParams({ strict: false }) as { orgId: string; groupId: string }
   const router = useRouter()
+  const navigate = useNavigate()
   const { isAdminOrManager } = useAuthStore()
   const { t } = useTranslation()
   const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [addMemberOpen, setAddMemberOpen] = useState(false)
   const [addTeamOpen, setAddTeamOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState<{ memberId: string; displayName: string; photoUrl?: string } | null>(null)
@@ -35,6 +37,7 @@ export function GroupDetailPage() {
 
   const { data: group, isLoading, isError, refetch } = useGroup(orgId, groupId)
   const updateMutation = useUpdateGroup(orgId, groupId)
+  const deleteMutation = useDeleteGroup(orgId)
   const addMemberMutation = useAddMemberToGroup(orgId, groupId)
   const removeMemberMutation = useRemoveMemberFromGroup(orgId, groupId)
   const addTeamMutation = useAddTeamToGroup(orgId, groupId)
@@ -87,6 +90,16 @@ export function GroupDetailPage() {
       toast.success(t('groups.teamRemoved'))
     } catch {
       toast.error(t('groups.teamRemoveFailed'))
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(groupId)
+      toast.success(t('groups.deleted'))
+      navigate({ to: `/app/org/${orgId}/groups`, replace: true })
+    } catch {
+      toast.error(t('groups.deleteFailed'))
     }
   }
 
@@ -191,7 +204,8 @@ export function GroupDetailPage() {
       {isAdminOrManager() && group && (
         <GroupFormDrawer open={editOpen} onClose={() => setEditOpen(false)} onSubmit={handleUpdate}
           isLoading={updateMutation.isPending} title={t('groups.editTitle')}
-          initialData={{ name: group.name, description: group.description, color: group.color }} />
+          initialData={{ name: group.name, description: group.description, color: group.color }}
+          onDelete={() => { setEditOpen(false); setDeleteOpen(true) }} />
       )}
 
       {isAdminOrManager() && (
@@ -211,6 +225,18 @@ export function GroupDetailPage() {
       <TeamContextDrawer team={selectedTeam} onClose={() => setSelectedTeam(null)} orgId={orgId}
         canManage={isAdminOrManager()} onRemove={(id) => { handleRemoveTeam(id); setSelectedTeam(null) }}
         isRemoving={removeTeamMutation.isPending} />
+
+      <DeleteConfirmDrawer
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={deleteMutation.isPending}
+        title={t('groups.deleteConfirmTitle')}
+        description={t('groups.deleteConfirmDesc', { name: group?.name ?? '' })}
+        icon={<Grid3X3 className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+        itemName={group?.name ?? ''}
+        deleteLabel={t('groups.deleteBtn')}
+      />
     </div>
   )
 }
@@ -269,6 +295,36 @@ function AddTeamDrawer({ open, onClose, onAdd, isLoading, availableTeams }: {
             {t('groups.addToGroup')}
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">{t('common.cancel')}</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function DeleteConfirmDrawer({
+  open, onClose, onConfirm, isLoading, title, description, icon, itemName, deleteLabel,
+}: {
+  open: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean
+  title: string; description: string; icon: ReactNode; itemName: string; deleteLabel: string
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader><DrawerTitle>{title}</DrawerTitle></DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            {icon}
+            <span className="text-sm font-medium">{itemName}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <DrawerFooter>
+          <Button variant="destructive" className="w-full" disabled={isLoading} onClick={onConfirm}>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {deleteLabel}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>{t('common.cancel')}</Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

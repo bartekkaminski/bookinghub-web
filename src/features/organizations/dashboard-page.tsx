@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { Users, Grid3X3, UsersRound, MapPin, CalendarDays, CalendarRange, ChevronRight, Loader2, ClipboardList } from 'lucide-react'
+import { Users, Grid3X3, UsersRound, MapPin, CalendarDays, CalendarRange, ChevronRight, Loader2, ClipboardList, Medal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useOrganization } from './use-organizations'
@@ -18,7 +18,7 @@ import type { UpdateOrganizationRequest } from '@/api/types'
 export function DashboardPage() {
   const { orgId } = useParams({ strict: false }) as { orgId: string }
   const navigate = useNavigate()
-  const { user, isAdminOrManager, isTrainer } = useAuthStore()
+  const { user, isAdminOrManager, isTrainer, isAdmin } = useAuthStore()
   const { t } = useTranslation()
 
   const canSeeOrgLists = isAdminOrManager() || isTrainer()
@@ -64,6 +64,9 @@ export function DashboardPage() {
       { label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/app/org/${orgId}/pending-requests` },
     ] : []),
     { label: t('dashboard.locations'), icon: <MapPin className="h-5 w-5" />, href: `/app/org/${orgId}/locations` },
+    ...(isAdmin() ? [
+      { label: t('dashboard.ranks'), icon: <Medal className="h-5 w-5" />, href: `/app/org/${orgId}/ranks` },
+    ] : []),
   ]
 
   return (

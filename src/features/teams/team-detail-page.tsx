@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { useParams, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, Edit, Plus, X, Users, UserCheck, Loader2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
+import { ArrowLeft, Edit, Plus, X, Users, UserCheck, Loader2, UsersRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
-import { useTeam, useUpdateTeam, useAddMemberToTeam, useRemoveMemberFromTeam, useAssignTrainerToTeam, useRemoveTrainerFromTeam } from './use-teams'
+import { useTeam, useUpdateTeam, useDeleteTeam, useAddMemberToTeam, useRemoveMemberFromTeam, useAssignTrainerToTeam, useRemoveTrainerFromTeam } from './use-teams'
 import { useAllMembers, useTrainers } from '@/features/members/use-members'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { Button } from '@/shared/components/ui/button'
@@ -22,14 +22,17 @@ import { DrawerSearchSelect } from '@/shared/components/ui/drawer-select'
 export function TeamDetailPage() {
   const { orgId, teamId } = useParams({ strict: false }) as { orgId: string; teamId: string }
   const router = useRouter()
+  const navigate = useNavigate()
   const { isAdminOrManager } = useAuthStore()
   const { t } = useTranslation()
   const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [addMemberOpen, setAddMemberOpen] = useState(false)
   const [addTrainerOpen, setAddTrainerOpen] = useState(false)
 
   const { data: team, isLoading, isError, refetch } = useTeam(orgId, teamId)
   const updateMutation = useUpdateTeam(orgId, teamId)
+  const deleteMutation = useDeleteTeam(orgId)
   const addMemberMutation = useAddMemberToTeam(orgId, teamId)
   const removeMemberMutation = useRemoveMemberFromTeam(orgId, teamId)
   const assignTrainerMutation = useAssignTrainerToTeam(orgId, teamId)
@@ -44,6 +47,16 @@ export function TeamDetailPage() {
       toast.success(t('teams.updated'))
     } catch {
       toast.error(t('teams.updateFailed'))
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(teamId)
+      toast.success(t('teams.deleted'))
+      navigate({ to: `/app/org/${orgId}/teams`, replace: true })
+    } catch {
+      toast.error(t('teams.deleteFailed'))
     }
   }
 
@@ -147,7 +160,8 @@ export function TeamDetailPage() {
       {isAdminOrManager() && team && (
         <TeamFormDrawer open={editOpen} onClose={() => setEditOpen(false)} onSubmit={handleUpdate}
           isLoading={updateMutation.isPending} title={t('teams.editTitle')}
-          initialData={{ name: team.name ?? '', priority: team.priority ?? undefined, notes: team.notes ?? '' }} />
+          initialData={{ name: team.name ?? '', priority: team.priority ?? undefined, notes: team.notes ?? '' }}
+          onDelete={() => { setEditOpen(false); setDeleteOpen(true) }} />
       )}
 
       <SelectMemberDrawer open={addMemberOpen} onClose={() => setAddMemberOpen(false)}
@@ -157,7 +171,49 @@ export function TeamDetailPage() {
       <SelectMemberDrawer open={addTrainerOpen} onClose={() => setAddTrainerOpen(false)}
         onAdd={(id) => { assignTrainerMutation.mutate({ trainerMemberId: id }); setAddTrainerOpen(false); toast.success(t('teams.trainerAssigned')) }}
         isLoading={assignTrainerMutation.isPending} items={availableTrainers} title={t('teams.assignTrainerTitle')} />
+
+      <DeleteConfirmDrawer
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={deleteMutation.isPending}
+        title={t('teams.deleteConfirmTitle')}
+        description={t('teams.deleteConfirmDesc', { name: team?.name ?? '' })}
+        icon={<UsersRound className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+        itemName={team?.name ?? `${t('teams.title')} ${team?.priority ?? ''}`}
+        deleteLabel={t('teams.deleteBtn')}
+      />
     </div>
+  )
+}
+
+function DeleteConfirmDrawer({
+  open, onClose, onConfirm, isLoading, title, description, icon, itemName, deleteLabel,
+}: {
+  open: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean
+  title: string; description: string; icon: ReactNode; itemName: string; deleteLabel: string
+}) {
+  const { t } = useTranslation()
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader><DrawerTitle>{title}</DrawerTitle></DrawerHeader>
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 mb-3">
+            {icon}
+            <span className="text-sm font-medium">{itemName}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <DrawerFooter>
+          <Button variant="destructive" className="w-full" disabled={isLoading} onClick={onConfirm}>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {deleteLabel}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={onClose}>{t('common.cancel')}</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

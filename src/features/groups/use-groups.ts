@@ -62,7 +62,12 @@ export function useDeleteGroup(orgId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (groupId: string) => groupsApi.delete(orgId, groupId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: groupKeys.lists(orgId) }),
+    onSuccess: (_data, groupId) => {
+      // Usuń dane szczegółów z cache — po usunięciu są nieaktualne
+      qc.removeQueries({ queryKey: groupKeys.detail(orgId, groupId) })
+      // Odśwież listę stronicowaną i listę "all"
+      qc.invalidateQueries({ queryKey: groupKeys.all(orgId) })
+    },
   })
 }
 

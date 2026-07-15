@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { Plus, UsersRound, ChevronRight, Search, Loader2, ArrowLeft } from 'lucide-react'
+import { Plus, UsersRound, ChevronRight, Search, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -98,9 +98,10 @@ export function TeamsListPage() {
   )
 }
 
-export function TeamFormDrawer({ open, onClose, onSubmit, isLoading, title, initialData }: {
+export function TeamFormDrawer({ open, onClose, onSubmit, isLoading, title, initialData, onDelete }: {
   open: boolean; onClose: () => void; onSubmit: (data: CreateTeamRequest) => void; isLoading: boolean
   title: string; initialData?: { name?: string; priority?: number; notes?: string }
+  onDelete?: () => void
 }) {
   const { t } = useTranslation()
   const [name, setName] = useState(initialData?.name ?? '')
@@ -136,6 +137,11 @@ export function TeamFormDrawer({ open, onClose, onSubmit, isLoading, title, init
             {initialData ? t('common.save') : t('teams.createBtn')}
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">{t('common.cancel')}</Button>
+          {onDelete && (
+            <Button variant="ghost" onClick={onDelete} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="h-4 w-4 mr-2" />{t('teams.deleteTeam')}
+            </Button>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

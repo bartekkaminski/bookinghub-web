@@ -30,6 +30,8 @@ import { EventSeriesListPage } from '@/features/event-series/event-series-list-p
 import { EventSeriesDetailPage } from '@/features/event-series/event-series-detail-page'
 import { PendingRequestsPage } from '@/features/enrollments/pending-requests-page'
 import { AvailabilityPage } from '@/features/availability/availability-page'
+import { RanksListPage } from '@/features/ranks/ranks-list-page'
+import { RankDetailPage } from '@/features/ranks/rank-detail-page'
 import { useAuthStore } from '@/features/auth/auth-store'
 
 // Root route
@@ -202,6 +204,18 @@ const memberAvailabilityRoute = createRoute({
   component: AvailabilityPage,
 })
 
+const ranksRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/ranks',
+  component: RanksListPage,
+})
+
+const rankDetailRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/ranks/$rankId',
+  component: RankDetailPage,
+})
+
 // Index redirect
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -252,6 +266,8 @@ const routeTree = rootRoute.addChildren([
       pendingRequestsRoute,
       availabilityRoute,
       memberAvailabilityRoute,
+      ranksRoute,
+      rankDetailRoute,
     ]),
   ]),
 ])
