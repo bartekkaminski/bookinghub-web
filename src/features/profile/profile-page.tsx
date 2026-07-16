@@ -225,6 +225,27 @@ export function ProfilePage() {
           </div>
         )}
 
+        {/* My ranks — read-only, one per discipline, assigned by admin */}
+        {(myMember?.ranks?.length ?? 0) > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground px-1">{t('profile.myRanks')}</p>
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+              {myMember!.ranks.map((r) => (
+                <div key={r.disciplineId} className="p-4 flex items-center gap-3">
+                  <div
+                    className="h-4 w-4 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: r.rankColor ?? '#475569' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-muted-foreground block truncate">{r.disciplineName}</span>
+                    <span className="text-sm font-medium block truncate">{r.rankName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* My children */}
         {(person?.children?.length ?? 0) > 0 && (
           <div className="space-y-1">

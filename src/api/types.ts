@@ -155,11 +155,44 @@ export interface OrganizationCreationLimitsResponse {
 
 // ── Member ────────────────────────────────────────────────────────────────────
 
+// ── Discipline ───────────────────────────────────────────────────────────────
+
+export interface DisciplineSummaryResponse {
+  id: string
+  organizationId: string
+  name: string
+  /** Kolor HEX dyscypliny, np. "#F59E0B". Undefined = brak koloru. */
+  color?: string
+  rankCount: number
+}
+
+export interface DisciplineDetailResponse {
+  id: string
+  organizationId: string
+  name: string
+  color?: string
+  rankCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateDisciplineRequest {
+  name: string
+  color?: string
+}
+
+export interface UpdateDisciplineRequest {
+  name: string
+  color?: string
+}
+
 // ── Rank ─────────────────────────────────────────────────────────────────────
 
 export interface RankSummaryResponse {
   id: string
   organizationId: string
+  disciplineId: string
+  disciplineName: string
   name: string
   /** Kolor HEX rangi, np. "#F59E0B". Undefined = brak koloru. */
   color?: string
@@ -169,6 +202,8 @@ export interface RankSummaryResponse {
 export interface RankDetailResponse {
   id: string
   organizationId: string
+  disciplineId: string
+  disciplineName: string
   name: string
   color?: string
   memberCount: number
@@ -191,9 +226,11 @@ export interface SetMemberRankRequest {
 }
 
 export interface MemberRankInfo {
-  id: string
-  name: string
-  color?: string
+  disciplineId: string
+  disciplineName: string
+  rankId: string
+  rankName: string
+  rankColor?: string
 }
 
 // ── Member ────────────────────────────────────────────────────────────────────
@@ -209,7 +246,7 @@ export interface MemberSummaryResponse {
   isActive: boolean
   roles: string[]
   hasAccount: boolean
-  rank?: MemberRankInfo
+  ranks: MemberRankInfo[]
 }
 
 export interface MemberDetailResponse {
@@ -229,7 +266,7 @@ export interface MemberDetailResponse {
   groups: MemberGroupInfo[]
   teams: MemberTeamInfo[]
   assignedTrainers: MemberTrainerInfo[]
-  rank?: MemberRankInfo
+  ranks: MemberRankInfo[]
   createdAt: string
   updatedAt: string
 }

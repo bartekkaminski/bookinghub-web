@@ -30,6 +30,10 @@ import type {
   AddMemberRoleRequest,
   SetMemberActiveRequest,
   AssignTrainerToParticipantRequest,
+  DisciplineSummaryResponse,
+  DisciplineDetailResponse,
+  CreateDisciplineRequest,
+  UpdateDisciplineRequest,
   RankSummaryResponse,
   RankDetailResponse,
   CreateRankRequest,
@@ -231,36 +235,68 @@ export const membersApi = {
   removeTrainer: (organizationId: string, memberId: string, trainerId: string) =>
     api.delete(`/api/organizations/${organizationId}/members/${memberId}/trainers/${trainerId}`),
 
-  setRank: (organizationId: string, memberId: string, data: SetMemberRankRequest) =>
-    api.put<MemberDetailResponse>(`/api/organizations/${organizationId}/members/${memberId}/rank`, data),
+  setRank: (organizationId: string, memberId: string, disciplineId: string, data: SetMemberRankRequest) =>
+    api.put<MemberDetailResponse>(
+      `/api/organizations/${organizationId}/members/${memberId}/disciplines/${disciplineId}/rank`,
+      data
+    ),
 
   delete: (organizationId: string, memberId: string) =>
     api.delete(`/api/organizations/${organizationId}/members/${memberId}`),
 }
 
+// ── Disciplines ───────────────────────────────────────────────────────────────
+
+export const disciplinesApi = {
+  list: (organizationId: string) =>
+    api.get<DisciplineSummaryResponse[]>(`/api/organizations/${organizationId}/disciplines`),
+
+  getById: (organizationId: string, disciplineId: string) =>
+    api.get<DisciplineDetailResponse>(`/api/organizations/${organizationId}/disciplines/${disciplineId}`),
+
+  create: (organizationId: string, data: CreateDisciplineRequest) =>
+    api.post<DisciplineDetailResponse>(`/api/organizations/${organizationId}/disciplines`, data),
+
+  update: (organizationId: string, disciplineId: string, data: UpdateDisciplineRequest) =>
+    api.put<DisciplineDetailResponse>(`/api/organizations/${organizationId}/disciplines/${disciplineId}`, data),
+
+  delete: (organizationId: string, disciplineId: string) =>
+    api.delete(`/api/organizations/${organizationId}/disciplines/${disciplineId}`),
+}
+
 // ── Ranks ─────────────────────────────────────────────────────────────────────
 
 export const ranksApi = {
-  list: (organizationId: string) =>
-    api.get<RankSummaryResponse[]>(`/api/organizations/${organizationId}/ranks`),
+  list: (organizationId: string, disciplineId: string) =>
+    api.get<RankSummaryResponse[]>(
+      `/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks`
+    ),
 
-  getById: (organizationId: string, rankId: string) =>
-    api.get<RankDetailResponse>(`/api/organizations/${organizationId}/ranks/${rankId}`),
+  getById: (organizationId: string, disciplineId: string, rankId: string) =>
+    api.get<RankDetailResponse>(
+      `/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks/${rankId}`
+    ),
 
-  getMembers: (organizationId: string, rankId: string, page: number, pageSize: number) =>
+  getMembers: (organizationId: string, disciplineId: string, rankId: string, page: number, pageSize: number) =>
     api.get<PagedResult<MemberSummaryResponse>>(
-      `/api/organizations/${organizationId}/ranks/${rankId}/members`,
+      `/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks/${rankId}/members`,
       { page, pageSize } as Record<string, number>
     ),
 
-  create: (organizationId: string, data: CreateRankRequest) =>
-    api.post<RankDetailResponse>(`/api/organizations/${organizationId}/ranks`, data),
+  create: (organizationId: string, disciplineId: string, data: CreateRankRequest) =>
+    api.post<RankDetailResponse>(
+      `/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks`,
+      data
+    ),
 
-  update: (organizationId: string, rankId: string, data: UpdateRankRequest) =>
-    api.put<RankDetailResponse>(`/api/organizations/${organizationId}/ranks/${rankId}`, data),
+  update: (organizationId: string, disciplineId: string, rankId: string, data: UpdateRankRequest) =>
+    api.put<RankDetailResponse>(
+      `/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks/${rankId}`,
+      data
+    ),
 
-  delete: (organizationId: string, rankId: string) =>
-    api.delete(`/api/organizations/${organizationId}/ranks/${rankId}`),
+  delete: (organizationId: string, disciplineId: string, rankId: string) =>
+    api.delete(`/api/organizations/${organizationId}/disciplines/${disciplineId}/ranks/${rankId}`),
 }
 
 // ── Groups ────────────────────────────────────────────────────────────────────

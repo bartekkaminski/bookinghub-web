@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useMember, useUpdateMember, useSetMemberActive, useAddMemberRole, useRemoveMemberRole, useAssignTrainer, useRemoveTrainerFromMember, useAllMembers, useAttachAccount, memberKeys } from './use-members'
 import { AssignRankDrawer } from '@/features/ranks/assign-rank-drawer'
+import { useDisciplines } from '@/features/disciplines/use-disciplines'
 import { useTrainers } from './use-members'
 import { usePersonChildren, useAddChild, useRemoveChild, usePerson, useRemoveParentLink, useAddParentChildLink } from '@/features/profile/use-person'
 import { Button } from '@/shared/components/ui/button'
@@ -42,9 +43,10 @@ export function MemberDetailPage() {
   const [removeTrainerTarget, setRemoveTrainerTarget] = useState<{ id: string; name: string } | null>(null)
   const [attachAccountOpen, setAttachAccountOpen] = useState(false)
   const [attachEmail, setAttachEmail] = useState('')
-  const [rankDrawerOpen, setRankDrawerOpen] = useState(false)
+  const [rankDisciplineId, setRankDisciplineId] = useState<string | null>(null)
 
   const { data: member, isLoading, isError, refetch } = useMember(orgId, memberId)
+  const { data: disciplines } = useDisciplines(orgId)
   const updateMutation = useUpdateMember(orgId, memberId)
   const setActiveMutation = useSetMemberActive(orgId, memberId)
   const addRoleMutation = useAddMemberRole(orgId, memberId)
@@ -320,27 +322,38 @@ export function MemberDetailPage() {
           </div>
         )}
 
-        {/* Rank section — visible only for admin */}
-        {isAdmin() && (
+        {/* Ranks section — jeden wiersz per dyscyplina, widoczne tylko dla admina */}
+        {isAdmin() && (disciplines?.length ?? 0) > 0 && (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground px-1">{t('members.rankSection')}</p>
-            <button
-              onClick={() => setRankDrawerOpen(true)}
-              className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
-            >
-              {member?.rank ? (
-                <div
-                  className="h-4 w-4 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: member.rank.color ?? '#475569' }}
-                />
-              ) : (
-                <Medal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              )}
-              <span className="text-sm font-medium flex-1">
-                {member?.rank?.name ?? t('members.noRank')}
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            </button>
+            <p className="text-xs text-muted-foreground px-1">{t('members.ranksSection')}</p>
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+              {disciplines?.map((discipline) => {
+                const assigned = member?.ranks.find((r) => r.disciplineId === discipline.id)
+                return (
+                  <button
+                    key={discipline.id}
+                    onClick={() => setRankDisciplineId(discipline.id)}
+                    className="w-full p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
+                  >
+                    {assigned ? (
+                      <div
+                        className="h-4 w-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: assigned.rankColor ?? '#475569' }}
+                      />
+                    ) : (
+                      <Medal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-muted-foreground block truncate">{discipline.name}</span>
+                      <span className="text-sm font-medium block truncate">
+                        {assigned?.rankName ?? t('members.noRank')}
+                      </span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
 
@@ -364,13 +377,15 @@ export function MemberDetailPage() {
           initialData={{ firstName: member.firstName, lastName: member.lastName, dateOfBirth: member.dateOfBirth, displayName: member.displayName, color: member.color, playerNumber: member.playerNumber }} />
       )}
 
-      {isAdmin() && member && (
+      {isAdmin() && member && rankDisciplineId && (
         <AssignRankDrawer
-          open={rankDrawerOpen}
-          onClose={() => setRankDrawerOpen(false)}
+          open={!!rankDisciplineId}
+          onClose={() => setRankDisciplineId(null)}
           orgId={orgId}
           memberId={memberId}
-          currentRankId={member.rank?.id}
+          disciplineId={rankDisciplineId}
+          disciplineName={disciplines?.find((d) => d.id === rankDisciplineId)?.name ?? ''}
+          currentRankId={member.ranks.find((r) => r.disciplineId === rankDisciplineId)?.rankId}
         />
       )}
 

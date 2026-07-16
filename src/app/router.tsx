@@ -30,7 +30,8 @@ import { EventSeriesListPage } from '@/features/event-series/event-series-list-p
 import { EventSeriesDetailPage } from '@/features/event-series/event-series-detail-page'
 import { PendingRequestsPage } from '@/features/enrollments/pending-requests-page'
 import { AvailabilityPage } from '@/features/availability/availability-page'
-import { RanksListPage } from '@/features/ranks/ranks-list-page'
+import { DisciplinesListPage } from '@/features/disciplines/disciplines-list-page'
+import { DisciplineDetailPage } from '@/features/disciplines/discipline-detail-page'
 import { RankDetailPage } from '@/features/ranks/rank-detail-page'
 import { useAuthStore } from '@/features/auth/auth-store'
 
@@ -204,15 +205,21 @@ const memberAvailabilityRoute = createRoute({
   component: AvailabilityPage,
 })
 
-const ranksRoute = createRoute({
+const disciplinesRoute = createRoute({
   getParentRoute: () => orgRoute,
-  path: '/ranks',
-  component: RanksListPage,
+  path: '/disciplines',
+  component: DisciplinesListPage,
+})
+
+const disciplineDetailRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: '/disciplines/$disciplineId',
+  component: DisciplineDetailPage,
 })
 
 const rankDetailRoute = createRoute({
   getParentRoute: () => orgRoute,
-  path: '/ranks/$rankId',
+  path: '/disciplines/$disciplineId/ranks/$rankId',
   component: RankDetailPage,
 })
 
@@ -266,7 +273,8 @@ const routeTree = rootRoute.addChildren([
       pendingRequestsRoute,
       availabilityRoute,
       memberAvailabilityRoute,
-      ranksRoute,
+      disciplinesRoute,
+      disciplineDetailRoute,
       rankDetailRoute,
     ]),
   ]),

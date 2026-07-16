@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useRank, useRankMembers, useUpdateRank, useDeleteRank } from './use-ranks'
-import { RankFormDrawer } from './ranks-list-page'
+import { RankFormDrawer } from './rank-form-drawer'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -23,7 +23,11 @@ import type { UpdateRankRequest } from '@/api/types'
 const PAGE_SIZE = 20
 
 export function RankDetailPage() {
-  const { orgId, rankId } = useParams({ strict: false }) as { orgId: string; rankId: string }
+  const { orgId, disciplineId, rankId } = useParams({ strict: false }) as {
+    orgId: string
+    disciplineId: string
+    rankId: string
+  }
   const router = useRouter()
   const navigate = useNavigate()
   const { isAdmin } = useAuthStore()
@@ -33,10 +37,10 @@ export function RankDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [page, setPage] = useState(1)
 
-  const { data: rank, isLoading, isError, refetch } = useRank(orgId, rankId)
-  const { data: membersPage, isLoading: membersLoading } = useRankMembers(orgId, rankId, page, PAGE_SIZE)
-  const updateMutation = useUpdateRank(orgId, rankId)
-  const deleteMutation = useDeleteRank(orgId)
+  const { data: rank, isLoading, isError, refetch } = useRank(orgId, disciplineId, rankId)
+  const { data: membersPage, isLoading: membersLoading } = useRankMembers(orgId, disciplineId, rankId, page, PAGE_SIZE)
+  const updateMutation = useUpdateRank(orgId, disciplineId, rankId)
+  const deleteMutation = useDeleteRank(orgId, disciplineId)
 
   const handleUpdate = async (data: UpdateRankRequest) => {
     try {
@@ -52,7 +56,7 @@ export function RankDetailPage() {
     try {
       await deleteMutation.mutateAsync(rankId)
       toast.success(t('ranks.deleted'))
-      navigate({ to: `/app/org/${orgId}/ranks`, replace: true })
+      navigate({ to: `/app/org/${orgId}/disciplines/${disciplineId}`, replace: true })
     } catch {
       toast.error(t('ranks.deleteFailed'))
     }
@@ -94,6 +98,7 @@ export function RankDetailPage() {
           </div>
           <div>
             <h2 className="font-semibold">{rank?.name}</h2>
+            <p className="text-xs text-muted-foreground">{rank?.disciplineName}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <Users className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">

@@ -13,6 +13,8 @@ interface AssignRankDrawerProps {
   onClose: () => void
   orgId: string
   memberId: string
+  disciplineId: string
+  disciplineName: string
   currentRankId?: string
 }
 
@@ -21,12 +23,14 @@ export function AssignRankDrawer({
   onClose,
   orgId,
   memberId,
+  disciplineId,
+  disciplineName,
   currentRankId,
 }: AssignRankDrawerProps) {
   const { t } = useTranslation()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const { data: ranks, isLoading } = useRanks(orgId)
-  const setRankMutation = useSetMemberRank(orgId, memberId)
+  const { data: ranks, isLoading } = useRanks(orgId, disciplineId)
+  const setRankMutation = useSetMemberRank(orgId, memberId, disciplineId)
 
   const handleAssign = async (rankId: string | null) => {
     if (rankId === currentRankId) {
@@ -52,7 +56,7 @@ export function AssignRankDrawer({
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>{t('ranks.assignRankTitle')}</DrawerTitle>
+          <DrawerTitle>{t('ranks.assignRankTitle', { discipline: disciplineName })}</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-2">
           {isLoading ? (
@@ -83,7 +87,7 @@ export function AssignRankDrawer({
                 )}
               </button>
 
-              {/* Lista rang */}
+              {/* Lista rang w tej dyscyplinie */}
               {(ranks ?? []).map((rank) => {
                 const isCurrent = rank.id === currentRankId
                 const isAssigning = pendingId === rank.id

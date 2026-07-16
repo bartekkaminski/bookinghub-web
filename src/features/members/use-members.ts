@@ -184,10 +184,10 @@ export function useDeleteMember(orgId: string) {
   })
 }
 
-export function useSetMemberRank(orgId: string, memberId: string) {
+export function useSetMemberRank(orgId: string, memberId: string, disciplineId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: SetMemberRankRequest) => membersApi.setRank(orgId, memberId, data),
+    mutationFn: (data: SetMemberRankRequest) => membersApi.setRank(orgId, memberId, disciplineId, data),
     onSuccess: (data) => {
       qc.setQueryData(memberKeys.detail(orgId, memberId), data)
       qc.invalidateQueries({ queryKey: memberKeys.lists(orgId) })
@@ -195,6 +195,7 @@ export function useSetMemberRank(orgId: string, memberId: string) {
       // Unieważnij wszystkie dane rang w tej organizacji:
       // listę rang (zmiana MemberCount), szczegóły rangi i listy członków rang
       qc.invalidateQueries({ queryKey: ['ranks', orgId] })
+      qc.invalidateQueries({ queryKey: ['disciplines', orgId] })
     },
   })
 }
