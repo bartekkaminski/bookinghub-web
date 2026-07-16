@@ -5,6 +5,7 @@ import type {
   UpdateGroupRequest,
   AddMemberToGroupRequest,
   AddTeamToGroupRequest,
+  AssignTrainerToGroupRequest,
   GroupFilterParams,
 } from '@/api/types'
 
@@ -99,6 +100,22 @@ export function useRemoveTeamFromGroup(orgId: string, groupId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (teamId: string) => groupsApi.removeTeam(orgId, groupId, teamId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: groupKeys.detail(orgId, groupId) }),
+  })
+}
+
+export function useAssignTrainerToGroup(orgId: string, groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: AssignTrainerToGroupRequest) => groupsApi.assignTrainer(orgId, groupId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: groupKeys.detail(orgId, groupId) }),
+  })
+}
+
+export function useRemoveTrainerFromGroup(orgId: string, groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (trainerId: string) => groupsApi.removeTrainer(orgId, groupId, trainerId),
     onSuccess: () => qc.invalidateQueries({ queryKey: groupKeys.detail(orgId, groupId) }),
   })
 }

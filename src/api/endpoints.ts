@@ -45,6 +45,7 @@ import type {
   UpdateGroupRequest,
   AddMemberToGroupRequest,
   AddTeamToGroupRequest,
+  AssignTrainerToGroupRequest,
   TeamSummaryResponse,
   TeamDetailResponse,
   CreateTeamRequest,
@@ -334,6 +335,12 @@ export const groupsApi = {
 
   removeTeam: (organizationId: string, groupId: string, teamId: string) =>
     api.delete(`/api/organizations/${organizationId}/groups/${groupId}/teams/${teamId}`),
+
+  assignTrainer: (organizationId: string, groupId: string, data: AssignTrainerToGroupRequest) =>
+    api.post<void>(`/api/organizations/${organizationId}/groups/${groupId}/trainers`, data),
+
+  removeTrainer: (organizationId: string, groupId: string, trainerId: string) =>
+    api.delete(`/api/organizations/${organizationId}/groups/${groupId}/trainers/${trainerId}`),
 }
 
 // ── Teams ─────────────────────────────────────────────────────────────────────

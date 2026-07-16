@@ -87,23 +87,7 @@ export function DisciplineDetailPage() {
       </div>
 
       <div className="p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-12 w-12 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold text-sm"
-            style={{ backgroundColor: discipline?.color ?? '#475569' }}
-          >
-            {discipline?.name.slice(0, 2).toUpperCase()}
-          </div>
-          <div>
-            <h2 className="font-semibold">{discipline?.name}</h2>
-            <span className="text-xs text-muted-foreground">
-              {t('disciplines.rankCount', { count: discipline?.rankCount ?? 0 })}
-            </span>
-          </div>
-        </div>
-
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground px-1 mb-1">{t('disciplines.ranksSection')}</p>
           {isAdmin() && (
             <Button
               variant="outline"
@@ -115,6 +99,8 @@ export function DisciplineDetailPage() {
               {t('ranks.createRank')}
             </Button>
           )}
+
+          <p className="text-xs text-muted-foreground px-1 mb-1 pt-2">{t('disciplines.ranksSection')}</p>
 
           {ranksLoading ? (
             <ListSkeleton />

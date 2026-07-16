@@ -376,20 +376,45 @@ export interface GroupDetailResponse {
   isActive: boolean
   members: GroupMemberInfo[]
   teams: GroupTeamInfo[]
+  /** Deduplikowana lista wszystkich unikalnych osób w grupie (uczestnicy bezpośredni + osoby z zespołów). */
+  effectiveMembers: GroupEffectiveMemberInfo[]
+  trainers: GroupTrainerInfo[]
   createdAt: string
   updatedAt: string
 }
 
 export interface GroupMemberInfo {
   memberId: string
+  personId: string
   displayName: string
   photoUrl?: string
-  roles: string[]
+  color?: string
+  priority?: number
+  joinedAt: string
 }
 
 export interface GroupTeamInfo {
   teamId: string
   teamName?: string
+  priority?: number
+  membersCount: number
+}
+
+export interface GroupTrainerInfo {
+  trainerMemberId: string
+  displayName: string
+  color?: string
+}
+
+/** Unikalna osoba w grupie wraz z informacją, z jakiego źródła (uczestnik/zespoły) pochodzi. */
+export interface GroupEffectiveMemberInfo {
+  memberId: string
+  personId: string
+  displayName: string
+  photoUrl?: string
+  color?: string
+  isDirectParticipant: boolean
+  teamNames: string[]
 }
 
 export interface CreateGroupRequest {
@@ -411,6 +436,10 @@ export interface AddMemberToGroupRequest {
 
 export interface AddTeamToGroupRequest {
   teamId: string
+}
+
+export interface AssignTrainerToGroupRequest {
+  trainerMemberId: string
 }
 
 // ── Team ──────────────────────────────────────────────────────────────────────
