@@ -5,13 +5,19 @@ import { Toaster } from 'sonner'
 import { router } from './router'
 import '@/i18n'
 import { PwaUpdateBanner } from '@/shared/components/pwa-update-banner'
+import { useToasterVisibilityFix } from '@/shared/hooks/use-toaster-visibility-fix'
 
 function AppInner() {
+  // Wymusza remount <Toaster> po powrocie apki z tła — patrz komentarz w hooku.
+  // Naprawia bug Sonnera na iOS, gdzie toasty przestają znikać i się kumulują.
+  const toasterRemountKey = useToasterVisibilityFix()
+
   return (
     <>
       <RouterProvider router={router} />
       <PwaUpdateBanner />
       <Toaster
+        key={toasterRemountKey}
         position="top-center"
         toastOptions={{
           style: {

@@ -272,11 +272,11 @@ export function EventDetailPage() {
                 <div className="mt-2 space-y-1">
                   {event.enrollments.map((en) => (
                     <EnrollmentRow
-                      key={en.id}
+                      key={en.enrollmentId}
                       enrollment={en}
                       canManage={canManage && isScheduled}
                       onRowClick={() => setEnrollmentActionTarget({
-                        enrollmentId: en.id,
+                        enrollmentId: en.enrollmentId,
                         displayName: en.displayName,
                         currentStatus: en.status,
                       })}
@@ -304,11 +304,11 @@ export function EventDetailPage() {
                 <div className="mt-2 space-y-1">
                   {event.teamEnrollments.map((te) => (
                     <TeamEnrollmentRow
-                      key={te.id}
+                      key={te.enrollmentId}
                       enrollment={te}
                       canManage={canManage && isScheduled}
                       onRowClick={() => setEnrollmentActionTarget({
-                        enrollmentId: te.id,
+                        enrollmentId: te.enrollmentId,
                         displayName: te.teamName ?? t('members.teamWithoutName'),
                         currentStatus: te.status,
                         isTeam: true,
@@ -384,7 +384,7 @@ export function EventDetailPage() {
           open={cancelRequestOpen}
           onClose={() => setCancelRequestOpen(false)}
           orgId={orgId}
-          enrollmentId={myEnrollment.id}
+          enrollmentId={myEnrollment.enrollmentId}
           eventTitle={event.title}
         />
       )}
@@ -599,8 +599,8 @@ function TeamEnrollmentRow({
       </Avatar>
       <span className="flex-1 text-sm">
         {enrollment.teamName}
-        {enrollment.memberCount != null && (
-          <span className="text-xs text-muted-foreground ml-1">({enrollment.memberCount})</span>
+        {enrollment.memberNames.length > 0 && (
+          <span className="text-xs text-muted-foreground ml-1">({enrollment.memberNames.length})</span>
         )}
       </span>
       <span className={cn('text-xs font-medium', enrollmentStatusColors[enrollment.status])}>

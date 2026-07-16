@@ -723,19 +723,20 @@ export interface EventTrainerInfo {
 }
 
 export interface EventEnrollmentInfo {
-  id: string
+  enrollmentId: string
   memberId: string
   displayName: string
   photoUrl?: string
   status: EventEnrollmentStatus
+  hasPendingCancellation?: boolean
 }
 
 export interface EventTeamEnrollmentInfo {
-  id: string
+  enrollmentId: string
   teamId: string
   teamName?: string
   status: EventEnrollmentStatus
-  memberCount: number
+  memberNames: string[]
 }
 
 export interface CreateEventRequest {
