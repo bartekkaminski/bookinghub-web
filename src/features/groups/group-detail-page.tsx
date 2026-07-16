@@ -117,7 +117,7 @@ export function GroupDetailPage() {
     try {
       await deleteMutation.mutateAsync(groupId)
       toast.success(t('groups.deleted'))
-      navigate({ to: `/app/org/${orgId}/groups`, replace: true })
+      navigate({ to: `/org/${orgId}/groups`, replace: true })
     } catch {
       toast.error(t('groups.deleteFailed'))
     }
@@ -508,7 +508,7 @@ function MemberContextDrawer({ member, onClose, orgId, canManage, onRemove, isRe
       <DrawerContent>
         <DrawerHeader><DrawerTitle>{member?.displayName}</DrawerTitle></DrawerHeader>
         <div className="px-4 pb-2 space-y-2">
-          <button onClick={() => { onClose(); navigate({ to: `/app/org/${orgId}/members/${member!.memberId}` }) }}
+          <button onClick={() => { onClose(); navigate({ to: `/org/${orgId}/members/${member!.memberId}` }) }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent text-left">
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium flex-1">{t('groups.moreAboutMember')}</span>
@@ -545,7 +545,7 @@ function TeamContextDrawer({ team, onClose, orgId, canManage, onRemove, isRemovi
       <DrawerContent>
         <DrawerHeader><DrawerTitle>{team?.teamName ?? t('members.teamWithoutName')}</DrawerTitle></DrawerHeader>
         <div className="px-4 pb-2 space-y-2">
-          <button onClick={() => { onClose(); navigate({ to: `/app/org/${orgId}/teams/${team!.teamId}` }) }}
+          <button onClick={() => { onClose(); navigate({ to: `/org/${orgId}/teams/${team!.teamId}` }) }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent text-left">
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium flex-1">{t('groups.moreAboutTeam')}</span>
@@ -577,7 +577,7 @@ function TrainerContextDrawer({ trainer, onClose, orgId, canManage, onRemove, is
       <DrawerContent>
         <DrawerHeader><DrawerTitle>{trainer?.displayName}</DrawerTitle></DrawerHeader>
         <div className="px-4 pb-2 space-y-2">
-          <button onClick={() => { onClose(); navigate({ to: `/app/org/${orgId}/members/${trainer!.trainerMemberId}` }) }}
+          <button onClick={() => { onClose(); navigate({ to: `/org/${orgId}/members/${trainer!.trainerMemberId}` }) }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent text-left">
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium flex-1">{t('groups.moreAboutTrainer')}</span>

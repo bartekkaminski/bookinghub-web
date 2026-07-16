@@ -251,7 +251,7 @@ export function ProfilePage() {
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground px-1">{t('children.pageTitle')}</p>
             <button
-              onClick={() => navigate({ to: `/app/org/${currentOrgId}/children` })}
+              onClick={() => navigate({ to: `/org/${currentOrgId}/children` })}
               className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
             >
               <Baby className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -388,7 +388,7 @@ export function ProfilePage() {
         <DrawerContent>
           <DrawerHeader><DrawerTitle>{currentMembership?.organizationName}</DrawerTitle></DrawerHeader>
           <div className="px-4 pb-4 space-y-2">
-            <button onClick={() => { setOrgActionsOpen(false); navigate({ to: '/app/org-select' }) }}
+            <button onClick={() => { setOrgActionsOpen(false); navigate({ to: '/org-select' }) }}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent transition-colors text-left">
               <SwitchCamera className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm font-medium">{t('profile.changeOrg')}</span>

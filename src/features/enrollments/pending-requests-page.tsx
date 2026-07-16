@@ -60,7 +60,7 @@ export function PendingRequestsPage() {
         <PageHeader
           title={t('pendingRequests.pageTitle')}
           back={
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           }

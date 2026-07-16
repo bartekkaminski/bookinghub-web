@@ -92,7 +92,7 @@ export function TeamDetailPage() {
     try {
       await deleteMutation.mutateAsync(teamId)
       toast.success(t('teams.deleted'))
-      navigate({ to: `/app/org/${orgId}/teams`, replace: true })
+      navigate({ to: `/org/${orgId}/teams`, replace: true })
     } catch {
       toast.error(t('teams.deleteFailed'))
     }
@@ -394,7 +394,7 @@ function MemberContextDrawer({ member, onClose, orgId, canManage, onRemove, isRe
       <DrawerContent>
         <DrawerHeader><DrawerTitle>{member?.displayName}</DrawerTitle></DrawerHeader>
         <div className="px-4 pb-2 space-y-2">
-          <button onClick={() => { onClose(); navigate({ to: `/app/org/${orgId}/members/${member!.memberId}` }) }}
+          <button onClick={() => { onClose(); navigate({ to: `/org/${orgId}/members/${member!.memberId}` }) }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent text-left">
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium flex-1">{t('teams.moreAboutMember')}</span>
@@ -426,7 +426,7 @@ function TrainerContextDrawer({ trainer, onClose, orgId, canManage, onRemove, is
       <DrawerContent>
         <DrawerHeader><DrawerTitle>{trainer?.displayName}</DrawerTitle></DrawerHeader>
         <div className="px-4 pb-2 space-y-2">
-          <button onClick={() => { onClose(); navigate({ to: `/app/org/${orgId}/members/${trainer!.trainerMemberId}` }) }}
+          <button onClick={() => { onClose(); navigate({ to: `/org/${orgId}/members/${trainer!.trainerMemberId}` }) }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent text-left">
             <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium flex-1">{t('teams.moreAboutTrainer')}</span>

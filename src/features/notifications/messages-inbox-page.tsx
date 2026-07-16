@@ -34,7 +34,7 @@ export function MessagesInboxPage() {
   const unreadCount = unreadData?.unreadCount ?? 0
 
   const handleItemClick = (msgId: string) => {
-    navigate({ to: `/app/org/${orgId}/messages/${msgId}` })
+    navigate({ to: `/org/${orgId}/messages/${msgId}` })
   }
 
   return (

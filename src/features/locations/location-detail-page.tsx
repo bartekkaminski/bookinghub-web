@@ -46,7 +46,7 @@ export function LocationDetailPage() {
     try {
       await deleteMutation.mutateAsync(locationId)
       toast.success(t('locations.deleted'))
-      navigate({ to: `/app/org/${orgId}/locations`, replace: true })
+      navigate({ to: `/org/${orgId}/locations`, replace: true })
     } catch {
       toast.error(t('locations.deleteFailed'))
     }

@@ -3,6 +3,7 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  redirect,
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
@@ -59,6 +60,37 @@ const callbackRoute = createRoute({
   component: CallbackPage,
 })
 
+// Legacy /app prefix → strip and redirect (bookmarks / old push links)
+function legacyAppRedirectHref(pathname: string, searchStr: string, hash: string) {
+  const nextPath =
+    pathname === '/app' || pathname === '/app/'
+      ? '/'
+      : pathname.replace(/^\/app/, '') || '/'
+  return `${nextPath}${searchStr}${hash}`
+}
+
+const legacyAppExactRedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app',
+  beforeLoad: ({ location }) => {
+    throw redirect({
+      href: legacyAppRedirectHref(location.pathname, location.searchStr, location.hash),
+      replace: true,
+    })
+  },
+})
+
+const legacyAppSplatRedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/$',
+  beforeLoad: ({ location }) => {
+    throw redirect({
+      href: legacyAppRedirectHref(location.pathname, location.searchStr, location.hash),
+      replace: true,
+    })
+  },
+})
+
 // Protected routes
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -66,22 +98,16 @@ const protectedRoute = createRoute({
   component: ProtectedLayout,
 })
 
-const appIndexRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/app',
-  component: () => <OrgSelectPage />,
-})
-
 const orgSelectRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: '/app/org-select',
+  path: '/org-select',
   component: OrgSelectPage,
 })
 
 // Org-scoped routes
 const orgRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: '/app/org/$orgId',
+  path: '/org/$orgId',
   component: OrgLayout,
 })
 
@@ -236,9 +262,9 @@ function IndexRedirect() {
 
   useEffect(() => {
     if (currentOrgId) {
-      navigate({ to: `/app/org/${currentOrgId}/dashboard` })
+      navigate({ to: `/org/${currentOrgId}/dashboard` })
     } else {
-      navigate({ to: '/app/org-select' })
+      navigate({ to: '/org-select' })
     }
   }, [navigate, currentOrgId])
 
@@ -249,8 +275,9 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   callbackRoute,
+  legacyAppExactRedirectRoute,
+  legacyAppSplatRedirectRoute,
   protectedRoute.addChildren([
-    appIndexRoute,
     orgSelectRoute,
     orgRoute.addChildren([
       dashboardRoute,

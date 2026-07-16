@@ -56,7 +56,7 @@ export function RankDetailPage() {
     try {
       await deleteMutation.mutateAsync(rankId)
       toast.success(t('ranks.deleted'))
-      navigate({ to: `/app/org/${orgId}/disciplines/${disciplineId}`, replace: true })
+      navigate({ to: `/org/${orgId}/disciplines/${disciplineId}`, replace: true })
     } catch {
       toast.error(t('ranks.deleteFailed'))
     }
@@ -128,7 +128,7 @@ export function RankDetailPage() {
                 {membersPage?.items.map((member) => (
                   <button
                     key={member.id}
-                    onClick={() => navigate({ to: `/app/org/${orgId}/members/${member.id}` })}
+                    onClick={() => navigate({ to: `/org/${orgId}/members/${member.id}` })}
                     className="w-full flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-accent transition-colors text-left"
                   >
                     <Avatar className="h-9 w-9 flex-shrink-0">

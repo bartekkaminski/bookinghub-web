@@ -360,7 +360,7 @@ export function MemberDetailPage() {
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground px-1">{t('availability.tab')}</p>
           <button
-            onClick={() => navigate({ to: `/app/org/${orgId}/members/${memberId}/availability` })}
+            onClick={() => navigate({ to: `/org/${orgId}/members/${memberId}/availability` })}
             className="w-full rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:bg-accent transition-colors text-left"
           >
             <Clock3 className="h-4 w-4 text-muted-foreground flex-shrink-0" />

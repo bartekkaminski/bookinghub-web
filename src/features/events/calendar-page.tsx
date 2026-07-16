@@ -319,7 +319,7 @@ export function CalendarPage() {
                       <EventCard
                         key={ev.id}
                         event={ev}
-                        onClick={() => navigate({ to: `/app/org/${orgId}/events/${ev.id}` })}
+                        onClick={() => navigate({ to: `/org/${orgId}/events/${ev.id}` })}
                       />
                     ))}
                   </div>
@@ -563,7 +563,7 @@ function AgendaView({
         <EventCard
           key={ev.id}
           event={ev}
-          onClick={() => navigate({ to: `/app/org/${orgId}/events/${ev.id}` })}
+          onClick={() => navigate({ to: `/org/${orgId}/events/${ev.id}` })}
         />
       ))
 

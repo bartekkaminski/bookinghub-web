@@ -11,7 +11,7 @@ export function CallbackPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && isProvisioned) {
-      navigate({ to: '/app/org-select' })
+      navigate({ to: '/org-select' })
     }
   }, [isLoading, isAuthenticated, isProvisioned, navigate])
 

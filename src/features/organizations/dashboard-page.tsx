@@ -26,7 +26,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (isParticipantOnly) {
-      navigate({ to: `/app/org/${orgId}/calendar`, replace: true })
+      navigate({ to: `/org/${orgId}/calendar`, replace: true })
     }
   }, [isParticipantOnly, orgId, navigate])
 
@@ -55,17 +55,17 @@ export function DashboardPage() {
   const currentMembership = user?.memberships.find(m => m.organizationId === orgId)
 
   const quickLinks = [
-    { label: t('dashboard.calendar'), icon: <CalendarDays className="h-5 w-5" />, href: `/app/org/${orgId}/calendar` },
+    { label: t('dashboard.calendar'), icon: <CalendarDays className="h-5 w-5" />, href: `/org/${orgId}/calendar` },
     ...(canSeeOrgLists ? [
-      { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/app/org/${orgId}/members` },
-      { label: t('dashboard.groups'), icon: <Grid3X3 className="h-5 w-5" />, href: `/app/org/${orgId}/groups` },
-      { label: t('dashboard.teams'), icon: <UsersRound className="h-5 w-5" />, href: `/app/org/${orgId}/teams` },
-      { label: t('dashboard.eventSeries'), icon: <CalendarRange className="h-5 w-5" />, href: `/app/org/${orgId}/event-series` },
-      { label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/app/org/${orgId}/pending-requests` },
+      { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/org/${orgId}/members` },
+      { label: t('dashboard.groups'), icon: <Grid3X3 className="h-5 w-5" />, href: `/org/${orgId}/groups` },
+      { label: t('dashboard.teams'), icon: <UsersRound className="h-5 w-5" />, href: `/org/${orgId}/teams` },
+      { label: t('dashboard.eventSeries'), icon: <CalendarRange className="h-5 w-5" />, href: `/org/${orgId}/event-series` },
+      { label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/org/${orgId}/pending-requests` },
     ] : []),
-    { label: t('dashboard.locations'), icon: <MapPin className="h-5 w-5" />, href: `/app/org/${orgId}/locations` },
+    { label: t('dashboard.locations'), icon: <MapPin className="h-5 w-5" />, href: `/org/${orgId}/locations` },
     ...(isAdmin() ? [
-      { label: t('dashboard.disciplines'), icon: <Layers className="h-5 w-5" />, href: `/app/org/${orgId}/disciplines` },
+      { label: t('dashboard.disciplines'), icon: <Layers className="h-5 w-5" />, href: `/org/${orgId}/disciplines` },
     ] : []),
   ]
 
@@ -82,7 +82,7 @@ export function DashboardPage() {
       {/* Baner oczekujących wniosków */}
       {canSeeOrgLists && pendingCount > 0 && (
         <button
-          onClick={() => navigate({ to: `/app/org/${orgId}/pending-requests` })}
+          onClick={() => navigate({ to: `/org/${orgId}/pending-requests` })}
           className="w-full rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 px-4 py-3.5 flex items-center gap-3 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors text-left mb-2"
         >
           <div className="flex-shrink-0 h-9 w-9 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center relative">
@@ -122,7 +122,7 @@ export function DashboardPage() {
       {user && (
         <button
           type="button"
-          onClick={() => navigate({ to: `/app/org/${orgId}/profile` })}
+          onClick={() => navigate({ to: `/org/${orgId}/profile` })}
           className="w-full mt-5 rounded-xl border border-border px-4 py-3 flex items-center gap-3 hover:bg-accent transition-colors text-left"
         >
           <div className="flex flex-col flex-1 items-center gap-0.5">

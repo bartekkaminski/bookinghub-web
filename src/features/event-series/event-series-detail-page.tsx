@@ -144,7 +144,7 @@ export function EventSeriesDetailPage() {
             {seriesEvents.slice(0, 10).map((ev) => (
               <button
                 key={ev.id}
-                onClick={() => navigate({ to: `/app/org/${orgId}/events/${ev.id}` })}
+                onClick={() => navigate({ to: `/org/${orgId}/events/${ev.id}` })}
                 className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent text-left transition-colors"
               >
                 <div

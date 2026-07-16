@@ -45,7 +45,7 @@ export function LocationsListPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={t('locations.title')}
-          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
+          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
           action={isAdminOrManager() ? (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />{t('common.add')}
@@ -68,7 +68,7 @@ export function LocationsListPage() {
         ) : (
           <div className="divide-y divide-border">
             {data?.items.map((loc) => (
-              <button key={loc.id} onClick={() => navigate({ to: `/app/org/${orgId}/locations/${loc.id}` })}
+              <button key={loc.id} onClick={() => navigate({ to: `/org/${orgId}/locations/${loc.id}` })}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left">
                 <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0">
                   <MapPin className="h-5 w-5" />

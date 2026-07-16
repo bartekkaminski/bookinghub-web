@@ -101,7 +101,7 @@ export function MessageDetailPage() {
     try {
       await deleteMutation.mutateAsync(messageId)
       toast.success(t('messages.deleted'))
-      navigate({ to: `/app/org/${orgId}/messages` })
+      navigate({ to: `/org/${orgId}/messages` })
     } catch {
       toast.error(t('messages.deleteFailed'))
     }
@@ -124,7 +124,7 @@ export function MessageDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate({ to: `/app/org/${orgId}/messages` })}
+              onClick={() => navigate({ to: `/org/${orgId}/messages` })}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

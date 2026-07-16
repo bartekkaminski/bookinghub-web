@@ -46,7 +46,7 @@ export function DisciplineDetailPage() {
     try {
       await deleteMutation.mutateAsync(disciplineId)
       toast.success(t('disciplines.deleted'))
-      navigate({ to: `/app/org/${orgId}/disciplines`, replace: true })
+      navigate({ to: `/org/${orgId}/disciplines`, replace: true })
     } catch {
       toast.error(t('disciplines.deleteHasRanks'))
     }
@@ -112,7 +112,7 @@ export function DisciplineDetailPage() {
                 <RankRow
                   key={rank.id}
                   rank={rank}
-                  onClick={() => navigate({ to: `/app/org/${orgId}/disciplines/${disciplineId}/ranks/${rank.id}` })}
+                  onClick={() => navigate({ to: `/org/${orgId}/disciplines/${disciplineId}/ranks/${rank.id}` })}
                 />
               ))}
             </div>

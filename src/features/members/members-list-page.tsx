@@ -79,7 +79,7 @@ export function MembersListPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={t('members.title')}
-          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
+          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
           action={
             isAdmin() ? (
               <Button size="sm" onClick={() => setAddMode('new')} className="gap-1.5">
@@ -130,7 +130,7 @@ export function MembersListPage() {
             {data?.items.map((member) => (
               <button
                 key={member.id}
-                onClick={() => navigate({ to: `/app/org/${orgId}/members/${member.id}` })}
+                onClick={() => navigate({ to: `/org/${orgId}/members/${member.id}` })}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
               >
                 <Avatar className="h-10 w-10 flex-shrink-0">

@@ -39,7 +39,7 @@ export function DisciplinesListPage() {
         <PageHeader
           title={t('disciplines.title')}
           back={
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           }
@@ -77,7 +77,7 @@ export function DisciplinesListPage() {
             <DisciplineRow
               key={discipline.id}
               discipline={discipline}
-              onClick={() => navigate({ to: `/app/org/${orgId}/disciplines/${discipline.id}` })}
+              onClick={() => navigate({ to: `/org/${orgId}/disciplines/${discipline.id}` })}
             />
           ))}
         </div>

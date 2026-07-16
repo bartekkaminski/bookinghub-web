@@ -36,7 +36,7 @@ export function OrgSelectPage() {
       const freshUser = await authApi.getMe()
       setUser(freshUser)
     } catch { /* ignoruj */ }
-    navigate({ to: `/app/org/${orgId}/dashboard` })
+    navigate({ to: `/org/${orgId}/dashboard` })
   }
 
   const handleCreate = async (formData: CreateOrganizationRequest) => {

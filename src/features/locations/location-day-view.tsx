@@ -100,7 +100,7 @@ function EventBlock({
   return (
     <button
       type="button"
-      onClick={() => navigate({ to: `/app/org/${orgId}/events/${event.id}` as never })}
+      onClick={() => navigate({ to: `/org/${orgId}/events/${event.id}` as never })}
       title={event.title}
       className={cn(
         'absolute border px-2 py-1 text-left overflow-hidden',

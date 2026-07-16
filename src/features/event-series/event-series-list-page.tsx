@@ -90,7 +90,7 @@ export function EventSeriesListPage() {
             return (
               <button
                 key={series.id}
-                onClick={() => navigate({ to: `/app/org/${orgId}/event-series/${series.id}` })}
+                onClick={() => navigate({ to: `/org/${orgId}/event-series/${series.id}` })}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
               >
                 <div

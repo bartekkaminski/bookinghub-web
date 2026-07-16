@@ -45,7 +45,7 @@ export function GroupsListPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={t('groups.title')}
-          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
+          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
           action={isAdminOrManager() ? (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />{t('common.add')}
@@ -68,7 +68,7 @@ export function GroupsListPage() {
         ) : (
           <div className="divide-y divide-border">
             {data?.items.map((group) => (
-              <button key={group.id} onClick={() => navigate({ to: `/app/org/${orgId}/groups/${group.id}` })}
+              <button key={group.id} onClick={() => navigate({ to: `/org/${orgId}/groups/${group.id}` })}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left">
                 <div className="h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold"
                   style={{ backgroundColor: group.color ?? '#6d28d9' }}>

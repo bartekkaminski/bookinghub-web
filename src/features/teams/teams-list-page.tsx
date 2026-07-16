@@ -47,7 +47,7 @@ export function TeamsListPage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <PageHeader
           title={t('teams.title')}
-          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/app/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
+          back={<Button variant="outline" size="sm" onClick={() => navigate({ to: `/org/${orgId}/dashboard` })}><ArrowLeft className="h-4 w-4" /></Button>}
           action={isAdminOrManager() ? (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" />{t('common.add')}
@@ -70,7 +70,7 @@ export function TeamsListPage() {
         ) : (
           <div className="divide-y divide-border">
             {data?.items.map((team) => (
-              <button key={team.id} onClick={() => navigate({ to: `/app/org/${orgId}/teams/${team.id}` })}
+              <button key={team.id} onClick={() => navigate({ to: `/org/${orgId}/teams/${team.id}` })}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left">
                 <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                   <UsersRound className="h-5 w-5" />
