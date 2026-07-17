@@ -6,7 +6,7 @@ import {
 import { pl, enUS } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useAvailabilitySlots } from './use-availability'
+import { useAvailabilitySlots, useMemberScheduleRange } from './use-availability'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/utils/cn'
@@ -44,7 +44,22 @@ export function AvailabilityMonthCalendar({
     return new Date(now.getFullYear(), now.getMonth(), 1)
   })
 
-  const { data: slots, isLoading } = useAvailabilitySlots(orgId, memberId)
+  const { data: slots, isLoading: slotsLoading } = useAvailabilitySlots(orgId, memberId)
+
+  const monthFrom = format(startOfMonth(currentMonth), 'yyyy-MM-dd')
+  const monthTo   = format(endOfMonth(currentMonth), 'yyyy-MM-dd')
+  const { data: monthSchedule, isLoading: scheduleLoading } = useMemberScheduleRange(
+    orgId, memberId, monthFrom, monthTo,
+  )
+  const isLoading = slotsLoading || scheduleLoading
+
+  const busyDates = useMemo(() => {
+    const set = new Set<string>()
+    monthSchedule?.forEach((day) => {
+      if (day.blocks.some((b) => b.type === 'Busy')) set.add(day.date)
+    })
+    return set
+  }, [monthSchedule])
 
   /**
    * Zwraca true jeśli dla danej daty istnieje przynajmniej 1 aktywny slot.
@@ -127,6 +142,7 @@ export function AvailabilityMonthCalendar({
             const sameMonth = isSameMonth(day, currentMonth)
             const active    = selectedDate ? format(selectedDate, 'yyyy-MM-dd') === key : false
             const hasSlots  = isDayActive(day)
+            const hasBusy   = busyDates.has(key)
 
             return (
               <button
@@ -139,15 +155,20 @@ export function AvailabilityMonthCalendar({
                   !sameMonth && 'opacity-30',
                   active
                     ? 'ring-2 ring-primary border-primary bg-primary/5'
-                    : hasSlots
-                      ? 'bg-green-50 border-green-200 dark:bg-green-950/40 dark:border-green-800'
-                      : 'border-transparent',
+                    : hasBusy
+                      ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
+                      : hasSlots
+                        ? 'bg-green-50 border-green-200 dark:bg-green-950/40 dark:border-green-800'
+                        : 'border-transparent',
                   today && !active && 'font-bold underline underline-offset-2',
                 )}
               >
                 <span className="leading-none">{format(day, 'd')}</span>
-                {hasSlots && !active && (
-                  <span className="mt-0.5 h-1 w-1 rounded-full bg-green-500" />
+                {(hasSlots || hasBusy) && !active && (
+                  <span className="mt-0.5 flex gap-0.5">
+                    {hasSlots && <span className="h-1 w-1 rounded-full bg-green-500" />}
+                    {hasBusy && <span className="h-1 w-1 rounded-full bg-blue-500" />}
+                  </span>
                 )}
               </button>
             )
@@ -156,7 +177,7 @@ export function AvailabilityMonthCalendar({
       )}
 
       {/* ── Legend ── */}
-      <div className="flex items-center justify-center gap-4 mt-3 text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-3 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="h-2.5 w-2.5 rounded border border-transparent bg-card" />
           {t('availability.legend.unavailable')}
@@ -166,8 +187,12 @@ export function AvailabilityMonthCalendar({
           {t('availability.legend.available')}
         </span>
         <span className="flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded bg-blue-50 border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800" />
+          {t('availability.legend.busy')}
+        </span>
+        <span className="flex items-center gap-1">
           <span className="h-2.5 w-2.5 rounded bg-primary/5 border border-primary" />
-          Wybrany
+          {t('availability.legend.selected')}
         </span>
       </div>
     </div>

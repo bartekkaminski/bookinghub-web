@@ -47,6 +47,21 @@ export function useMemberDaySchedule(
   })
 }
 
+/** Scalony grafik dla zakresu dat (np. miesiąc — kropki Busy w kalendarzu). */
+export function useMemberScheduleRange(
+  orgId: string,
+  memberId: string,
+  from: string | null,
+  to: string | null,
+) {
+  return useQuery({
+    queryKey: availabilityKeys.schedule(orgId, memberId, from ?? '', to ?? ''),
+    queryFn:  () => availabilityApi.getSchedule(orgId, memberId, from!, to!),
+    enabled:  !!orgId && !!memberId && !!from && !!to,
+    staleTime: 60 * 1000,
+  })
+}
+
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useAddAvailabilitySlot(orgId: string, memberId: string) {

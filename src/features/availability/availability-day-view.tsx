@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { pl, enUS } from 'date-fns/locale'
 import { Calendar, Repeat2, CalendarDays, Pencil, Trash2 } from 'lucide-react'
@@ -71,6 +72,7 @@ function layoutBlocks(blocks: ScheduleBlock[], startHour: number): BlockLayout[]
 export function AvailabilityDayView({ orgId, memberId, date, canEdit = false }: Props) {
   const { t, i18n } = useTranslation()
   const locale      = i18n.language === 'en' ? enUS : pl
+  const navigate    = useNavigate()
 
   const { data: schedule, isLoading } = useMemberDaySchedule(orgId, memberId, date)
   const { data: slots }               = useAvailabilitySlots(orgId, memberId)
@@ -98,6 +100,10 @@ export function AvailabilityDayView({ orgId, memberId, date, canEdit = false }: 
   const [deleteConfirm, setDeleteConfirm] = useState(false)
 
   function handleBlockClick(block: ScheduleBlock) {
+    if (block.type === 'Busy' && block.event?.eventId) {
+      void navigate({ to: `/org/${orgId}/events/${block.event.eventId}` })
+      return
+    }
     if (!canEdit) return
     const slot = slotMap.get(block.slotId)
     if (!slot) return
@@ -202,7 +208,9 @@ export function AvailabilityDayView({ orgId, memberId, date, canEdit = false }: 
               {laid.map((item, idx) => {
                 const slot      = slotMap.get(item.block.slotId)
                 const isSingle  = slot ? isSingleSlot(slot) : false
-                const clickable = canEdit && !!slot
+                const clickable =
+                  (item.block.type === 'Busy' && !!item.block.event?.eventId) ||
+                  (canEdit && !!slot)
 
                 return (
                   <BlockCard

@@ -45,6 +45,10 @@ export function useMemberEnrollments(orgId: string, memberId: string) {
   })
 }
 
+function invalidateSchedule(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['availability'] })
+}
+
 export function useEnrollMember(orgId: string, eventId: string) {
   const qc = useQueryClient()
   return useMutation({
@@ -52,6 +56,7 @@ export function useEnrollMember(orgId: string, eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
+      invalidateSchedule(qc)
     },
   })
 }
@@ -63,6 +68,7 @@ export function useEnrollTeam(orgId: string, eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
+      invalidateSchedule(qc)
     },
   })
 }
@@ -74,6 +80,7 @@ export function useUnenroll(orgId: string, eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
+      invalidateSchedule(qc)
     },
   })
 }
@@ -85,6 +92,7 @@ export function useUnenrollTeam(orgId: string, eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
+      invalidateSchedule(qc)
     },
   })
 }
@@ -97,6 +105,7 @@ export function useSetEnrollmentStatus(orgId: string, eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
+      invalidateSchedule(qc)
     },
   })
 }
@@ -146,6 +155,7 @@ export function useApproveEnrollmentRequest(orgId: string, eventId: string) {
       qc.invalidateQueries({ queryKey: eventKeys.detail(orgId, eventId) })
       qc.invalidateQueries({ queryKey: enrollmentKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: enrollmentRequestKeys.pending(orgId) })
+      invalidateSchedule(qc)
     },
   })
 }
