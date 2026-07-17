@@ -33,7 +33,7 @@ export function CancelEventDrawer({ open, onClose, orgId, eventId }: CancelEvent
     try {
       await cancelM.mutateAsync({
         reason: reason.trim() || undefined,
-        notifyEnrolled: notify,
+        notifyParticipants: notify,
       })
       toast.success(t('events.cancelled'))
       onClose()

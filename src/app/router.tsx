@@ -27,8 +27,6 @@ import { MessagesInboxPage } from '@/features/notifications/messages-inbox-page'
 import { MessageDetailPage } from '@/features/notifications/message-detail-page'
 import { CalendarPage } from '@/features/events/calendar-page'
 import { EventDetailPage } from '@/features/events/event-detail-page'
-import { EventSeriesListPage } from '@/features/event-series/event-series-list-page'
-import { EventSeriesDetailPage } from '@/features/event-series/event-series-detail-page'
 import { PendingRequestsPage } from '@/features/enrollments/pending-requests-page'
 import { AvailabilityPage } from '@/features/availability/availability-page'
 import { DisciplinesListPage } from '@/features/disciplines/disciplines-list-page'
@@ -201,18 +199,6 @@ const eventDetailRoute = createRoute({
   component: EventDetailPage,
 })
 
-const eventSeriesRoute = createRoute({
-  getParentRoute: () => orgRoute,
-  path: '/event-series',
-  component: EventSeriesListPage,
-})
-
-const eventSeriesDetailRoute = createRoute({
-  getParentRoute: () => orgRoute,
-  path: '/event-series/$seriesId',
-  component: EventSeriesDetailPage,
-})
-
 const pendingRequestsRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: '/pending-requests',
@@ -295,8 +281,6 @@ const routeTree = rootRoute.addChildren([
       messageDetailRoute,
       calendarRoute,
       eventDetailRoute,
-      eventSeriesRoute,
-      eventSeriesDetailRoute,
       pendingRequestsRoute,
       availabilityRoute,
       memberAvailabilityRoute,

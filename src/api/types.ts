@@ -730,6 +730,7 @@ export type CancellationStatus = 'Pending' | 'Approved' | 'Rejected' | 'Withdraw
 
 export interface EventSummaryResponse {
   id: string
+  organizationId?: string
   title: string
   startTime: string
   endTime: string
@@ -740,7 +741,10 @@ export interface EventSummaryResponse {
   locationName?: string
   groupId?: string
   groupName?: string
-  enrollmentCount: number
+  seriesGroupId?: string
+  enrolledCount?: number
+  enrollmentCount?: number
+  trainers?: EventTrainerInfo[]
 }
 
 export interface EventCalendarResponse {
@@ -755,7 +759,7 @@ export interface EventCalendarResponse {
   groupName?: string
   enrolledCount: number
   trainerNames: string[]
-  eventSeriesId?: string
+  seriesGroupId?: string
 }
 
 export interface EventDetailResponse {
@@ -771,8 +775,7 @@ export interface EventDetailResponse {
   locationName?: string
   groupId?: string
   groupName?: string
-  eventSeriesId?: string
-  eventSeriesTitle?: string
+  seriesGroupId?: string
   trainers: EventTrainerInfo[]
   enrollments: EventEnrollmentInfo[]
   teamEnrollments: EventTeamEnrollmentInfo[]
@@ -813,10 +816,55 @@ export interface CreateEventRequest {
   eventType: EventType
   locationId?: string
   groupId?: string
-  eventSeriesId?: string
   color?: string
   unitCost?: number
   currency?: string
+  /** Uczestnicy zapisywani od razu przy tworzeniu */
+  memberIds?: string[]
+  /** Zespoły zapisywane od razu przy tworzeniu */
+  teamIds?: string[]
+}
+
+export interface CreateRecurringEventsRequest {
+  title: string
+  description?: string
+  eventType: EventType
+  locationId?: string
+  groupId?: string
+  color?: string
+  unitCost?: number
+  currency?: string
+  /** Uczestnicy zapisywani na każde wygenerowane wystąpienie */
+  memberIds?: string[]
+  /** Zespoły zapisywane na każde wygenerowane wystąpienie */
+  teamIds?: string[]
+  /** Data początkowa zakresu "YYYY-MM-DD" */
+  dateFrom: string
+  /** Data końcowa zakresu "YYYY-MM-DD" */
+  dateTo: string
+  /** Godzina rozpoczęcia "HH:mm" */
+  startTime: string
+  /** Godzina zakończenia "HH:mm" */
+  endTime: string
+  /** Dni tygodnia — nazwy .NET DayOfWeek, np. "Monday" */
+  daysOfWeek: Array<'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'>
+}
+
+export interface CreateRecurringEventsResponse {
+  seriesGroupId: string
+  generatedCount: number
+  skippedCount: number
+  eventIds: string[]
+}
+
+export interface CancelFutureInSeriesGroupRequest {
+  reason?: string
+  notifyParticipants?: boolean
+}
+
+export interface CancelFutureInSeriesGroupResponse {
+  seriesGroupId: string
+  cancelledCount: number
 }
 
 export interface UpdateEventRequest {
@@ -834,7 +882,7 @@ export interface UpdateEventRequest {
 
 export interface CancelEventRequest {
   reason?: string
-  notifyEnrolled?: boolean
+  notifyParticipants?: boolean
 }
 
 export interface AssignTrainerToEventRequest {
@@ -848,57 +896,6 @@ export interface CalendarRequest {
   locationId?: string
   eventType?: EventType
   status?: EventStatus
-}
-
-export interface EventSeriesSummaryResponse {
-  id: string
-  title: string
-  description?: string
-  recurrenceRule?: string
-  defaultGroupId?: string
-  defaultGroupName?: string
-  defaultLocationId?: string
-  defaultLocationName?: string
-  defaultColor?: string
-  defaultEventType: EventType
-  isActive: boolean
-}
-
-export interface EventSeriesDetailResponse {
-  id: string
-  title: string
-  description?: string
-  recurrenceRule?: string
-  defaultGroupId?: string
-  defaultGroupName?: string
-  defaultLocationId?: string
-  defaultLocationName?: string
-  defaultColor?: string
-  defaultEventType: EventType
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateEventSeriesRequest {
-  title: string
-  description?: string
-  recurrenceRule?: string
-  defaultGroupId?: string
-  defaultLocationId?: string
-  defaultColor?: string
-  defaultEventType?: EventType
-}
-
-export interface UpdateEventSeriesRequest {
-  title: string
-  description?: string
-  recurrenceRule?: string
-  defaultGroupId?: string
-  defaultLocationId?: string
-  defaultColor?: string
-  defaultEventType: EventType
-  isActive: boolean
 }
 
 // ── Filter Params ─────────────────────────────────────────────────────────────
@@ -940,7 +937,7 @@ export interface MessageFilterParams extends FilterParams {
 }
 
 export interface EventFilterParams extends FilterParams {
-  eventSeriesId?: string
+  seriesGroupId?: string
   groupId?: string
   locationId?: string
   eventType?: EventType
@@ -948,35 +945,6 @@ export interface EventFilterParams extends FilterParams {
   startFrom?: string
   startTo?: string
   search?: string
-}
-
-export interface EventSeriesFilterParams extends FilterParams {
-  search?: string
-  defaultGroupId?: string
-  defaultLocationId?: string
-  defaultEventType?: EventType
-  isActive?: boolean
-}
-
-// ── Generate Events ───────────────────────────────────────────────────────────
-
-export interface GenerateEventsRequest {
-  /** Data początkowa zakresu "YYYY-MM-DD" */
-  dateFrom: string
-  /** Data końcowa zakresu "YYYY-MM-DD" */
-  dateTo: string
-  /** Godzina rozpoczęcia "HH:mm" */
-  startTime: string
-  /** Godzina zakończenia "HH:mm" */
-  endTime: string
-  overrideLocationId?: string
-  overrideGroupId?: string
-  overrideColor?: string
-}
-
-export interface GenerateEventsResponse {
-  generatedCount: number
-  skippedCount: number
 }
 
 // ── Enrollments ───────────────────────────────────────────────────────────────

@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsApi } from '@/api/endpoints'
 import type {
   CreateEventRequest,
+  CreateRecurringEventsRequest,
+  CancelFutureInSeriesGroupRequest,
   UpdateEventRequest,
   CancelEventRequest,
   AssignTrainerToEventRequest,
@@ -18,6 +20,8 @@ export const eventKeys = {
   calendar: (orgId: string, params: CalendarRequest) => [...eventKeys.all(orgId), 'calendar', params] as const,
   myCalendar: (orgId: string, params: CalendarRequest) => [...eventKeys.all(orgId), 'my-calendar', params] as const,
   detail: (orgId: string, eventId: string) => [...eventKeys.all(orgId), 'detail', eventId] as const,
+  seriesGroup: (orgId: string, seriesGroupId: string) =>
+    [...eventKeys.all(orgId), 'series-group', seriesGroupId] as const,
 }
 
 export function useCalendarEvents(orgId: string, params: CalendarRequest, myCalendar = false) {
@@ -48,6 +52,14 @@ export function useEvent(orgId: string, eventId: string) {
   })
 }
 
+export function useEventsBySeriesGroup(orgId: string, seriesGroupId: string | undefined) {
+  return useQuery({
+    queryKey: eventKeys.seriesGroup(orgId, seriesGroupId ?? ''),
+    queryFn: () => eventsApi.bySeriesGroup(orgId, seriesGroupId!),
+    enabled: !!orgId && !!seriesGroupId,
+  })
+}
+
 export function useCreateEvent(orgId: string) {
   const qc = useQueryClient()
   return useMutation({
@@ -55,6 +67,29 @@ export function useCreateEvent(orgId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
       qc.invalidateQueries({ queryKey: ['availability'] })
+    },
+  })
+}
+
+export function useCreateRecurringEvents(orgId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateRecurringEventsRequest) => eventsApi.createRecurring(orgId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: ['availability'] })
+    },
+  })
+}
+
+export function useCancelFutureInSeriesGroup(orgId: string, seriesGroupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CancelFutureInSeriesGroupRequest) =>
+      eventsApi.cancelFutureInSeriesGroup(orgId, seriesGroupId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: eventKeys.all(orgId) })
+      qc.invalidateQueries({ queryKey: eventKeys.seriesGroup(orgId, seriesGroupId) })
     },
   })
 }
@@ -126,6 +161,39 @@ export function useRemoveTrainerFromEvent(orgId: string, eventId: string) {
 }
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
+
+/** Day names matching .NET DayOfWeek (Mon–Sun order for UI index 0–6). */
+export const DOTNET_WEEKDAY_NAMES = [
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+] as const
+
+export type DotNetDayOfWeek = typeof DOTNET_WEEKDAY_NAMES[number]
+
+/** Count matching weekdays in [dateFrom, dateTo] for selected Mon–Sun flags. */
+export function countMatchingDays(
+  dateFrom: string,
+  dateTo: string,
+  daysMonSun: boolean[],
+): number {
+  if (!dateFrom || !dateTo) return 0
+  const from = new Date(dateFrom + 'T00:00:00')
+  const to = new Date(dateTo + 'T00:00:00')
+  if (isNaN(from.getTime()) || isNaN(to.getTime()) || from > to) return 0
+
+  let count = 0
+  const cur = new Date(from)
+  while (cur <= to) {
+    const jsDay = cur.getDay() // 0=Sun … 6=Sat
+    const monSunIdx = jsDay === 0 ? 6 : jsDay - 1
+    if (daysMonSun[monSunIdx]) count++
+    cur.setDate(cur.getDate() + 1)
+  }
+  return count
+}
+
+export function selectedDaysToDotNet(daysMonSun: boolean[]): DotNetDayOfWeek[] {
+  return DOTNET_WEEKDAY_NAMES.filter((_, i) => daysMonSun[i])
+}
 
 export function getEventColor(event: { color?: string; eventType: EventType }): string {
   if (event.color) return event.color

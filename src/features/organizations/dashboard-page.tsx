@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { Users, Grid3X3, UsersRound, MapPin, CalendarDays, CalendarRange, ChevronRight, Loader2, ClipboardList, Layers } from 'lucide-react'
+import { Users, Grid3X3, UsersRound, MapPin, CalendarDays, ChevronRight, Loader2, ClipboardList, Layers } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { useOrganization } from './use-organizations'
@@ -60,7 +60,6 @@ export function DashboardPage() {
       { label: t('dashboard.users'), icon: <Users className="h-5 w-5" />, href: `/org/${orgId}/members` },
       { label: t('dashboard.groups'), icon: <Grid3X3 className="h-5 w-5" />, href: `/org/${orgId}/groups` },
       { label: t('dashboard.teams'), icon: <UsersRound className="h-5 w-5" />, href: `/org/${orgId}/teams` },
-      { label: t('dashboard.eventSeries'), icon: <CalendarRange className="h-5 w-5" />, href: `/org/${orgId}/event-series` },
       { label: t('dashboard.pendingRequests'), icon: <ClipboardList className="h-5 w-5" />, href: `/org/${orgId}/pending-requests` },
     ] : []),
     { label: t('dashboard.locations'), icon: <MapPin className="h-5 w-5" />, href: `/org/${orgId}/locations` },

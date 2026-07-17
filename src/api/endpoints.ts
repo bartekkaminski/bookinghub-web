@@ -68,18 +68,15 @@ import type {
   EventCalendarResponse,
   EventDetailResponse,
   CreateEventRequest,
+  CreateRecurringEventsRequest,
+  CreateRecurringEventsResponse,
+  CancelFutureInSeriesGroupRequest,
+  CancelFutureInSeriesGroupResponse,
   UpdateEventRequest,
   CancelEventRequest,
   AssignTrainerToEventRequest,
   CalendarRequest,
   EventFilterParams,
-  EventSeriesSummaryResponse,
-  EventSeriesDetailResponse,
-  CreateEventSeriesRequest,
-  UpdateEventSeriesRequest,
-  EventSeriesFilterParams,
-  GenerateEventsRequest,
-  GenerateEventsResponse,
   EnrollmentSummaryResponse,
   EnrollmentDetailResponse,
   TeamEnrollmentSummaryResponse,
@@ -461,35 +458,25 @@ export const eventsApi = {
 
   removeTrainer: (organizationId: string, eventId: string, trainerId: string) =>
     api.delete<EventDetailResponse>(`/api/organizations/${organizationId}/events/${eventId}/trainers/${trainerId}`),
-}
 
-// ── Event Series ──────────────────────────────────────────────────────────────
-
-export const eventSeriesApi = {
-  list: (organizationId: string, params?: EventSeriesFilterParams) =>
-    api.get<PagedResult<EventSeriesSummaryResponse>>(
-      `/api/organizations/${organizationId}/event-series`,
-      params as Record<string, string | number | boolean | undefined>
+  createRecurring: (organizationId: string, data: CreateRecurringEventsRequest) =>
+    api.post<CreateRecurringEventsResponse>(
+      `/api/organizations/${organizationId}/events/recurring`,
+      data
     ),
 
-  listAll: (organizationId: string) =>
-    api.get<EventSeriesSummaryResponse[]>(`/api/organizations/${organizationId}/event-series/all`),
+  bySeriesGroup: (organizationId: string, seriesGroupId: string) =>
+    api.get<EventSummaryResponse[]>(
+      `/api/organizations/${organizationId}/events/by-series-group/${seriesGroupId}`
+    ),
 
-  getById: (organizationId: string, seriesId: string) =>
-    api.get<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series/${seriesId}`),
-
-  create: (organizationId: string, data: CreateEventSeriesRequest) =>
-    api.post<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series`, data),
-
-  update: (organizationId: string, seriesId: string, data: UpdateEventSeriesRequest) =>
-    api.put<EventSeriesDetailResponse>(`/api/organizations/${organizationId}/event-series/${seriesId}`, data),
-
-  delete: (organizationId: string, seriesId: string) =>
-    api.delete(`/api/organizations/${organizationId}/event-series/${seriesId}`),
-
-  generate: (organizationId: string, seriesId: string, data: GenerateEventsRequest) =>
-    api.post<GenerateEventsResponse>(
-      `/api/organizations/${organizationId}/event-series/${seriesId}/generate`,
+  cancelFutureInSeriesGroup: (
+    organizationId: string,
+    seriesGroupId: string,
+    data: CancelFutureInSeriesGroupRequest
+  ) =>
+    api.post<CancelFutureInSeriesGroupResponse>(
+      `/api/organizations/${organizationId}/events/by-series-group/${seriesGroupId}/cancel-future`,
       data
     ),
 }

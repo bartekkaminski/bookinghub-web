@@ -1,18 +1,19 @@
 import { useState } from 'react'
-import { useParams, useRouter } from '@tanstack/react-router'
+import { useParams, useRouter, useNavigate } from '@tanstack/react-router'
 import { format, parseISO } from 'date-fns'
 import { pl, enUS } from 'date-fns/locale'
 import {
   ArrowLeft, Edit, XCircle, CheckCircle2, Trash2,
   MapPin, Users, UsersRound, CalendarDays, Clock,
-  Plus, Loader2, UserMinus, ChevronRight, ClipboardCheck, ClipboardX,
+  Plus, Loader2, UserMinus, ChevronRight, ClipboardCheck, ClipboardX, CalendarRange,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/features/auth/auth-store'
 import {
   useEvent, useCompleteEvent, useDeleteEvent,
-  useRemoveTrainerFromEvent, getEventColor, getStatusColor,
+  useRemoveTrainerFromEvent, useEventsBySeriesGroup, useCancelFutureInSeriesGroup,
+  getEventColor, getStatusColor,
 } from './use-events'
 import {
   useUnenroll, useUnenrollTeam, useSetEnrollmentStatus,
@@ -44,6 +45,7 @@ function useDateLocale() {
 export function EventDetailPage() {
   const { orgId, eventId } = useParams({ strict: false }) as { orgId: string; eventId: string }
   const router = useRouter()
+  const navigate = useNavigate()
   const { isAdminOrManager, isTrainer, isParticipant, user } = useAuthStore()
   const { t } = useTranslation()
   const locale = useDateLocale()
@@ -59,6 +61,7 @@ export function EventDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [trainerOpen, setTrainerOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [cancelFutureOpen, setCancelFutureOpen] = useState(false)
   const [enrollMemberOpen, setEnrollMemberOpen] = useState(false)
   const [enrollTeamOpen, setEnrollTeamOpen] = useState(false)
   const [cancelRequestOpen, setCancelRequestOpen] = useState(false)
@@ -72,6 +75,8 @@ export function EventDetailPage() {
   } | null>(null)
 
   const { data: event, isLoading, isError, refetch } = useEvent(orgId, eventId)
+  const { data: relatedEvents } = useEventsBySeriesGroup(orgId, event?.seriesGroupId)
+  const cancelFutureM = useCancelFutureInSeriesGroup(orgId, event?.seriesGroupId ?? '')
   const completeM = useCompleteEvent(orgId, eventId)
   const deleteM = useDeleteEvent(orgId)
   const removeTrainerM = useRemoveTrainerFromEvent(orgId, eventId)
@@ -180,13 +185,58 @@ export function EventDetailPage() {
         />
       </Section>
 
-      {/* Series */}
-      {event.eventSeriesId && (
-        <Section title={t('events.sectionSeries')}>
-          <InfoRow
-            icon={<CalendarDays className="h-4 w-4" />}
-            label={event.eventSeriesTitle ?? t('events.noSeries')}
-          />
+      {/* Related events in cycle */}
+      {event.seriesGroupId && (
+        <Section title={t('events.relatedSectionTitle')}>
+          <p className="text-xs text-muted-foreground mb-2">
+            {t('events.relatedCount', { count: relatedEvents?.length ?? 0 })}
+          </p>
+          {relatedEvents && relatedEvents.length > 0 ? (
+            <div className="space-y-1 mb-3">
+              {relatedEvents
+                .filter((ev) => ev.id !== eventId)
+                .slice(0, 10)
+                .map((ev) => (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    onClick={() => navigate({ to: `/org/${orgId}/events/${ev.id}` })}
+                    className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent text-left transition-colors"
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: getEventColor(ev) }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{ev.title}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {format(parseISO(ev.startTime), 'd MMM, HH:mm', { locale })}
+                      </p>
+                    </div>
+                    {ev.status !== 'Scheduled' && (
+                      <Badge variant="secondary" className={cn('text-[10px] px-1.5', getStatusColor(ev.status))}>
+                        {t(`events.status${ev.status}`)}
+                      </Badge>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-3">{t('events.relatedEmpty')}</p>
+          )}
+          {isAdminOrManager() && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950"
+              onClick={() => setCancelFutureOpen(true)}
+            >
+              <CalendarRange className="h-4 w-4" />
+              {t('events.cancelFutureBtn')}
+            </Button>
+          )}
         </Section>
       )}
 
@@ -469,6 +519,22 @@ export function EventDetailPage() {
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={handleDelete}
         isLoading={deleteM.isPending}
+        t={t}
+      />
+      <CancelFutureConfirmDrawer
+        open={cancelFutureOpen}
+        onClose={() => setCancelFutureOpen(false)}
+        onConfirm={async () => {
+          try {
+            const result = await cancelFutureM.mutateAsync({ notifyParticipants: true })
+            toast.success(t('events.cancelFutureSuccess', { count: result.cancelledCount }))
+            setCancelFutureOpen(false)
+            refetch()
+          } catch {
+            toast.error(t('events.cancelFutureFailed'))
+          }
+        }}
+        isLoading={cancelFutureM.isPending}
         t={t}
       />
     </div>
@@ -946,6 +1012,43 @@ function DeleteConfirmDrawer({
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             {t('events.deleteBtn')}
+          </Button>
+          <Button variant="outline" onClick={onClose} className="w-full">
+            {t('common.cancel')}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function CancelFutureConfirmDrawer({
+  open, onClose, onConfirm, isLoading, t,
+}: {
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  isLoading: boolean
+  t: ReturnType<typeof useTranslation>['t']
+}) {
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t('events.cancelFutureBtn')}</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-2">
+          <p className="text-sm text-muted-foreground">{t('events.cancelFutureConfirm')}</p>
+        </div>
+        <DrawerFooter>
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {t('events.cancelFutureBtn')}
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">
             {t('common.cancel')}
